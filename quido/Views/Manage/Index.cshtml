@@ -1,87 +1,368 @@
 ﻿@model quido.Models.IndexViewModel
+@using Microsoft.AspNet.Identity
 @{
     ViewBag.Title = "Manage";
 }
+<style type="text/css" scoped>
+    body {
+        margin-top: 50px;
+    }
 
-<h2>@ViewBag.Title.</h2>
+    #accordion .glyphicon {
+        margin-right: 10px;
+    }
 
-<p class="text-success">@ViewBag.StatusMessage</p>
-<div>
-    <h4>Change your account settings</h4>
-    <hr />
-    <dl class="dl-horizontal">
-        <dt>Password:</dt>
-        <dd>
-            [
-            @if (Model.HasPassword)
-            {
-                @Html.ActionLink("Change your password", "ChangePassword")
-            }
-            else
-            {
-                @Html.ActionLink("Create", "SetPassword")
-            }
-            ]
-        </dd>
-        <dt>External Logins:</dt>
-        <dd>
-            @Model.Logins.Count [
-            @Html.ActionLink("Manage", "ManageLogins") ]
-        </dd>
-        @*
-            Phone Numbers can used as a second factor of verification in a two-factor authentication system.
-             
-             See <a href="http://go.microsoft.com/fwlink/?LinkId=403804">this article</a>
-                for details on setting up this ASP.NET application to support two-factor authentication using SMS.
-             
-             Uncomment the following block after you have set up two-factor authentication
-        *@
-        @*  
-            <dt>Phone Number:</dt>
-            <dd>
-                @(Model.PhoneNumber ?? "None")
-                @if (Model.PhoneNumber != null)
-                {
-                    <br />
-                    <text>[&nbsp;&nbsp;@Html.ActionLink("Change", "AddPhoneNumber")&nbsp;&nbsp;]</text>
-                    using (Html.BeginForm("RemovePhoneNumber", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <text>[<input type="submit" value="Remove" class="btn-link" />]</text>
-                    }
-                }
-                else
-                {
-                    <text>[&nbsp;&nbsp;@Html.ActionLink("Add", "AddPhoneNumber")
-                }
-            </dd>
-        *@
-        <dt>Two-Factor Authentication:</dt>
-        <dd>
-            <p>
-                There are no two-factor authentication providers configured. See <a href="http://go.microsoft.com/fwlink/?LinkId=403804">this article</a>
-                for details on setting up this ASP.NET application to support two-factor authentication.
-            </p>
-            @*@if (Model.TwoFactor)
-                {
-                    using (Html.BeginForm("DisableTwoFactorAuthentication", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <text>Enabled
-                        <input type="submit" value="Disable" class="btn btn-link" />
-                        </text>
-                    }
-                }
-                else
-                {
-                    using (Html.BeginForm("EnableTwoFactorAuthentication", "Manage", FormMethod.Post, new { @class = "form-horizontal", role = "form" }))
-                    {
-                        @Html.AntiForgeryToken()
-                        <text>Disabled
-                        <input type="submit" value="Enable" class="btn btn-link" />
-                        </text>
-                    }
-                }*@
-        </dd>
-    </dl>
+    .panel-body {
+        padding: 0px;
+    }
+
+        .panel-body table tr td {
+            padding-left: 15px;
+        }
+
+        .panel-body .table {
+            margin-bottom: 0px;
+        }
+
+    .modal-header,  .close {
+        background-color: dodgerblue;
+        color: white !important;
+        text-align: center;
+        font-size: 30px;
+    }
+
+    .modal-footer {
+        background-color: #f9f9f9;
+    }
+</style>
+
+
+
+
+
+
+
+
+
+
+<h4>@User.Identity.GetUserName()</h4>
+<div class="row">
+    <div class="col-sm-3 col-md-3">
+        <div class="panel-group" id="accordion">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a id="openQuestionForm" data-toggle="collapse" data-parent="#accordion" href="">
+                            <span class="glyphicon glyphicon-plus">
+                            </span>Pridať otázku
+                        </a>
+                    </h4>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
+                            <span class="glyphicon glyphicon-th">
+                            </span>Moje otázky
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseTwo" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        <table class="table">
+                            <tr>
+                                <td>
+                                    <span class="glyphicon glyphicon-heart"></span>
+                                    <a href="#">Najpopulárnejšie</a>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <a href="#">Shipments</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <a href="#">Tex</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapseThree">
+                            <span class="glyphicon glyphicon-user">
+                            </span>Môj účet
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapseThree" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        <table class="table">
+                            <tr>
+                                <td>
+                                    <span class="glyphicon glyphicon-wrench "></span>
+                                    @Html.ActionLink("Zmena hesla", "ChangePassword")
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span class="glyphicon glyphicon-usd "></span><a href="#">
+                                        Stav účtu
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <span class="glyphicon glyphicon-trash "></span><a href="#">
+                                        Vymazať účet
+                                    </a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="body" class="col-sm-9 col-md-9">
+        Obsah stránky
+        <div id="userQuestions">
+
+        </div>
+    </div>
 </div>
+
+
+<div class="modal fade" id="questionModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header" style="padding:15px 30px;">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h3><span class="glyphicon glyphicon-plus"></span> Pridať otázku</h3>
+            </div>
+
+            <div class="modal-body" style="padding:40px 50px;">
+                <form data-toggle="validator" role="form" id="questionForm">
+                    <div id="questionDiv"class="form-group">
+                        <label for="textarea_textQuestion"><span class="glyphicon glyphicon-tag"></span> Text otázky</label>
+                        <textarea rows="2" class="form-control" id="textQuestion" name="textQuestion" data-error="Vyplnte text prosím" required placeholder="Vložte text otázky"></textarea>
+                        <div id="questionErrorDiv"class="help-block with-errors"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="textarea_descriptionQuestion"><span class="glyphicon glyphicon-tag"></span> Popis otázky</label>
+                        <textarea rows="3" class="form-control" id="descriptionQuestion" name="descriptionQuestion" placeholder="Vložte popis vašej otázky"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="selectList"><span class="glyphicon glyphicon-tag"></span> Kategória:</label>
+                        <select class="form-control"  id="questionModalCategories" name="questionModalCategories"></select>
+                    </div>
+                    <div>
+                        <label style="font-size:20px;"> Odpovede: <br /></label>
+                    </div>
+                    <div id="answers">
+                        <div  id="answer1div" class="form-group">
+                            <input type="text" class="form-control" id="answer1" name="answer1" data-error="Vyplnte odpoveď prosím" required placeholder="Odpoveď 1">
+                            <div id="answer1errorDiv" class="help-block with-errors"></div>
+                        </div>                        
+                        <div id="answer2div"class="form-group">
+                            <input type="text" class="form-control" id="answer2" name="answer2" data-error="Vyplnte odpoveď prosím" required placeholder="Odpoveď 2">
+                            <div  id="answer2errorDiv"class="help-block with-errors"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" style="background-color:dodgerblue" class="btn btn-primary"><span class="glyphicon glyphicon-plus"></span> Odoslať otázku</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts
+{
+
+    <script type="text/javascript">
+   /* window.alert = function () { };
+    var defaultCSS = document.getElementById('bootstrap-css');
+    function changeCSS(css) {
+        if (css) $('head > link').filter(':first').replaceWith('<link rel="stylesheet" href="' + css + '" type="text/css" />');
+        else $('head > link').filter(':first').replaceWith(defaultCSS);
+    }*/
+
+        //nacitanie kategorii cez ajax a ay potom otvori modal
+        function getQuestionCategories() {
+            debugger;
+            $.ajax({
+                type: "GET",
+                url: "question/getQuestionCategories",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    debugger;                   
+                    $.each(result, function (id, value) {
+                        $('#questionModalCategories').append($('<option/>', {
+                            value: value.value,
+                            text: result[id].Name
+                        }));
+
+                    });
+                    $("#questionModal").modal();
+                },
+                error: function (response) {
+                    debugger;
+                    alert('Nepodarilo sa nacitat kategorie');
+                }
+            });
+
+        };
+
+
+        function getUserQuestions() {
+            //debugger;
+            $.ajax({
+                type: "GET",
+                url: "question/getUserQuestions",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (data) {
+                    debugger;
+                    $('#userQuestions').append($('<div class="row">'));
+                    $.each(JSON.parse(data), function (key, value) {
+                        
+                        $('#userQuestions').append($('<div id="'+ value.question.Id+'" style="border-radius: 25px;'
+                           + 'border: 2px solid #73AD21; border-width: 7px; padding: 20px;   width: 200px;   height: 150px; ">'
+                            + value.question.QuestionText 
+                            + '</div>'
+
+                            
+                        )
+                        );
+                        if (key % 3 == 0)
+                            $('#userQuestions').append($('</div>\n<div class="row">'));
+
+                    });
+                    $('#userQuestions').append($('</div>\n'));
+                },
+                error: function (request, status, error) {
+                    alert(request.responseText);
+                }
+            });
+
+        };
+
+
+
+        $("#openQuestionForm").click(function () {
+            getQuestionCategories();
+        
+    });
+
+    $('#questionForm').validator();
+    $(document).ready(function () {
+
+        getUserQuestions();
+
+        //bug ked odide z inputu aby neostala chybova hlaska
+        $("#textQuestion").focusout(function () {
+            if ($.trim($("#textQuestion").val())) {
+                $('#questionErrorDiv').empty();
+
+            }
+        });
+        $("#answer1").focusout(function (){
+            if ($.trim($("#answer1").val())) {               
+                $('#answer1errorDiv').empty();
+                   
+            }       
+        
+        });
+        $("#answer2").focusout(function (){
+            if ($.trim($("#answer2").val())) {               
+                $('#answer2errorDiv').empty();
+                   
+            }
+        });
+
+
+
+        //validacia formu ked sa odosle
+        $('#questionForm').submit(function (e) {
+            var isGood = true;
+            if (!$.trim($("#answer1").val())) {                
+                $('#answer1div').addClass("has-error");
+                $('#answer1div').addClass("has-danger");
+                if ($('#answer1errorDiv').text() != $('#answer1').attr('data-error'))
+                    $('#answer1errorDiv').append($('#answer1').attr('data-error'));
+                isGood = false;               
+            }
+            if (!$.trim($("#answer2").val())) {
+                $('#answer2div').addClass("has-error");
+                $('#answer2div').addClass("has-danger");
+                if ($('#answer2errorDiv').text() != $('#answer2').attr('data-error'))
+                    $('#answer2errorDiv').append($('#answer2').attr('data-error'));
+                isGood = false;
+            }
+            if (!$.trim($("#textQuestion").val())) {
+                $('#questionDiv').addClass("has-error");
+                $('#questionDiv').addClass("has-danger");
+                if ($('#questionErrorDiv').text() != $('#textQuestion').attr('data-error'))
+                    $('#questionErrorDiv').append($('#textQuestion').attr('data-error'));
+                isGood = false;
+            }
+
+            if (!isGood)
+                return false;
+             else {
+                addQuestion();
+            }
+        });
+
+
+
+        addQuestion = function () {
+           
+            var questionDataModel = {
+                textQuestion: $('#textQuestion').val(),
+                descriptionQuestion: $('#descriptionQuestion').val(),
+                questionCategory: $('#questionModalCategories').val(),
+                answer1: $('#answer1').val(),
+                answer2: $('#answer2').val()
+            };
+            
+            $.ajax({
+                type: "POST",
+                url: "question/addQuestion",
+                content: "application/json; charset=utf-8",
+                dataType: "json",
+                data: questionDataModel, // returns all the data in your form
+                success: function (response) {
+                    alert("Otazka odosloana!");
+                    return false;
+                },
+                error: function (response) {
+                    alert("Nepodarilo sa poslat data");
+                    return false;
+                }
+                
+            });
+        };
+
+        
+
+
+
+
+
+    });
+
+    </script>
+}
+
