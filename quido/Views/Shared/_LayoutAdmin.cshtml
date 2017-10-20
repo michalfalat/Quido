@@ -1,0 +1,204 @@
+﻿@{
+    Layout = null;
+}
+<script>
+    var modelData = @Html.Raw(Json.Encode(Model));
+</script>
+
+@Scripts.Render("~/bundles/jquery")
+@Scripts.Render("~/bundles/bootstrap")
+<!DOCTYPE html>
+
+<html>
+<head>
+    <style type="text/css" scoped>
+        body {
+            margin-top: 50px;
+        }
+
+        #accordion .glyphicon {
+            margin-right: 10px;
+        }
+
+        .panel-body {
+            padding: 0px;
+        }
+
+        div.questionHover :hover {
+            background-color: darkgrey;
+        }
+
+        .panel-body table tr td {
+            padding-left: 15px;
+        }
+
+        .panel-body .table {
+            margin-bottom: 0px;
+        }
+
+        .modal-header, .close {
+            background-color: dodgerblue;
+            color: white !important;
+            text-align: center;
+            font-size: 30px;
+        }
+
+        .modal-footer {
+            background-color: #f9f9f9;
+        }
+
+        .inner-addon {
+            position: relative;
+        }
+
+            /* style glyph */
+            .inner-addon .glyphicon {
+                position: absolute;
+                padding: 10px;
+                pointer-events: none;
+            }
+
+        /* align glyph */
+        .left-addon .glyphicon {
+            left: 0px;
+        }
+
+        .right-addon .glyphicon {
+            right: 0px;
+        }
+
+        /* add padding  */
+        .left-addon input {
+            padding-left: 30px;
+        }
+
+        .right-addon input {
+            padding-right: 30px;
+        }
+    </style>
+
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Admin menu - Quido </title>
+
+
+    @Scripts.Render("~/bundles/modernizr")
+    @*<link href="/Content/bootstrap.min.css" rel="stylesheet">*@
+
+    @*<link href="/Content/font-awesome.min.css" rel="stylesheet">
+    <link href="/Content/animate.min.css" rel="stylesheet">
+    <link href="/Content/custom.min.css" rel="stylesheet">*@
+    @Styles.Render("~/Content/font-awesome.min.css")
+    @Styles.Render("~/Content/animate.min.css")
+    @Styles.Render("~/Content/custom.min.css")
+    @Styles.Render("~/Content/bootstrap.min.css")
+
+
+    <!--[if lt IE 9]>
+    <script src="../assets/js/ie8-responsive-file-warning.js"></script>
+    <![endif]-->
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+    <div style="margin:20px;">
+        <h2> Quido - Admin menu </h2>
+        <div class="row">
+            <div class="col-sm-2 col-md-2 col-lg-2">                
+                <div class="panel-group" id="accordion">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-parent="#accordion" href="@Url.Action("index", "admin")">
+                                    <span class="glyphicon glyphicon-stats">
+                                    </span>Statistiky
+                                </a>
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-parent="#accordion" href="@Url.Action("users", "admin")">
+                                    <span class="glyphicon glyphicon-user">
+                                    </span>Užívatelé
+                                </a>
+                            </h4>
+                        </div>                        
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-parent="#accordion" href="@Url.Action("questions", "admin")">
+                                    <span class="glyphicon glyphicon-question-sign">
+                                    </span>Otázky
+                                </a>
+                            </h4>
+                        </div>                        
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a  data-parent="#accordion" href="@Url.Action("reports", "admin")">
+                                    <span class="glyphicon glyphicon-flag">
+                                    </span>Reporty
+                                </a>
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-parent="#accordion" href="#">
+                                    <span class="glyphicon glyphicon-grain">
+                                    </span>Reklama
+                                </a>
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-parent="#accordion" href="@Url.Action("logs", "admin")">
+                                    <span class="glyphicon glyphicon-warning-sign">
+                                    </span>Bugy
+                                </a>
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">                               
+                                    <a data-parent="#accordion" href="javascript:document.getElementById('logoutForm').submit()">
+                                        <span class="glyphicon glyphicon-off">
+                                        </span>Odhlásiť sa
+                                    </a>
+                               
+                            </h4>
+                        </div>                        
+                    </div>
+                </div>
+                @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "logoutForm" }))
+            {
+                    @Html.AntiForgeryToken()
+                }
+            </div>
+           
+
+            <div id="body" class="col-sm-9 col-md-9 col-lg-9">
+
+                <div id="loading"><img class="img-responsive2" src="@Url.Content("~/Content/Resources/load.gif")" alt="" height="50" width="50" style="display:none;"></div>
+                @RenderBody()
+
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

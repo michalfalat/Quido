@@ -1,0 +1,167 @@
+﻿@model quido.Controllers.adminController.AdminDetail
+@{
+    ViewBag.Title = "Admin menu";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+@Styles.Render("~/Content/font-awesome.min.css")
+@Styles.Render("~/Content/animate.min.css")
+@Styles.Render("~/Content/custom.min.css")
+@Styles.Render("~/Content/bootstrap.min.css")
+<script src="~/Scripts/Chart.bundle.min.js"></script>
+<script>
+    var modelData = @Html.Raw(Json.Encode(Model));
+    var labelsUserLM = [];
+    var dataUserLM = [];
+    var colorsUserLM = [];
+
+    var labelsQuestionLM = [];
+    var dataQuestionLM = [];
+    var colorsQuestionLM = [];
+    blueColors = ['#0C87EB','#79BFF8','#D2EAFD','#074B83','#0A69B7','#0B78D1'];
+    
+   
+    $(document).ready(function () {
+        $.each(modelData.usersLastMonth, function (key, value) {
+            labelsUserLM.push(value.date);
+            dataUserLM.push(value.count);
+            colorsUserLM.push(blueColors[0]);
+        });
+
+        $.each(modelData.questionsLastMonth, function (key, value) {
+            labelsQuestionLM.push(value.date);
+            dataQuestionLM.push(value.count);
+            colorsQuestionLM.push('#21ff51');
+        });
+        //fitToContainer(document.getElementById("usersLastMonthCanvas"));
+        var ctx = document.getElementById("usersLastMonthCanvas").getContext("2d");
+
+        var myBarChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+
+        labels: labelsUserLM,
+                datasets: [{
+            data: dataUserLM,
+                    backgroundColor: colorsUserLM
+
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                legend: {
+                    display: false,
+                    position: 'right',
+                    labels: {
+                        fontSize: 20,
+                        fontColor: '#000000',
+                        usePointStyle: true
+                    }
+
+                },
+                tooltips: {
+                    bodyFontSize: 20
+                },
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            userCallback: function(label, index, labels) {
+                                // when the floored value is the same as the value we have a whole number
+                                if (Math.floor(label) === label) {
+                                    return label;
+                                }
+
+                            },
+                        }
+                        
+                    }]
+                }
+            }
+
+
+        });
+
+        var ctx1 = document.getElementById("questionsLastMonthCanvas").getContext("2d");
+
+        var myBarChart1 = new Chart(ctx1, {
+            type: 'bar',
+            data: {
+
+                labels: labelsQuestionLM,
+                datasets: [{
+                    data: dataQuestionLM,
+                    backgroundColor: colorsQuestionLM
+
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                legend: {
+                    display: false,
+                    position: 'right',
+                    labels: {
+                        fontSize: 20,
+                        fontColor: '#000000',
+                        usePointStyle: true
+                    }
+
+                },
+                tooltips: {
+                    bodyFontSize: 20
+                },
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            userCallback: function(label, index, labels) {
+                                // when the floored value is the same as the value we have a whole number
+                                if (Math.floor(label) === label) {
+                                    return label;
+                                }
+
+                            },
+                        }
+                        
+                    }]
+                }
+            }
+
+
+        });
+
+
+    })
+</script>
+
+<div class="row">
+    <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+        <span class="count_top"><i class="fa fa-user"></i> Všichni používatelé</span>
+        <div class="count green" style="font-size:25px; font-weight: bolder;">@Model.activeUsersCount</div>
+        <span class="count_bottom">Dnes: <i class="green">@Model.todayUsersCount</i></span>
+    </div>
+    <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+        <span class="count_top"><i class="fa fa-clock-o"></i> Počet otázek</span>
+        <div class="count" style="font-size:25px;font-weight: bolder;">@Model.activeQuestionsCount</div>
+        <span class="count_bottom">Dnes: <i class="green">@Model.todayQuestionsCount</i></span>
+    </div>
+
+    <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+        <span class="count_top"><i class="fa fa-user"></i> Počet návštev</span>
+        <div class="count" style="font-size:25px; font-weight: bolder;">-<a href="http://" target="_blank" style="font-family: Geneva, Arial; font-size: 9px; color: #330010; text-decoration: none;"></a></div>
+        <span class="count_bottom"><i class="green">-</i> Včera</span>
+    </div>
+    <div class="col-md-3 col-sm-4 col-xs-6 tile_stats_count">
+        <span class="count_top"><i class="fa fa-user"></i>Počet odpovědí</span>
+        <div class="count" style="font-size:25px; font-weight: bolder;">@Model.activeVotesCount</div>
+    </div>
+    <div class="col-lg-12 col-md-12 col-sm-12"style="height:250px; margin-top:20px;font-size:25px;font-weight: bold;">
+        Počet registracii:
+        <canvas id="usersLastMonthCanvas" style="height:240px;width:950px;max-height:240px;max-width:950px;"></canvas>
+    </div>
+    <div class="col-lg-12 col-md-12 col-sm-12" style="height:250px; margin-top:20px;font-size:25px;font-weight: bold;">
+        Počet otázek:
+        <canvas id="questionsLastMonthCanvas" style="height:240px;width:950px;max-height:240px;max-width:950px;"></canvas>
+    </div>
+</div>

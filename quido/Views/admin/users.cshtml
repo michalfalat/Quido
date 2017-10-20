@@ -1,0 +1,132 @@
+﻿@model  PagedList.IPagedList <quido.Controllers.adminController.UsersAdmin>
+@using PagedList.Mvc;
+@{
+    ViewBag.Title = "Užívatelé - admin Quido";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+<script>
+    function removeUser(id, username)
+    {
+        $("#headerModal").empty();
+        $("#headerModal").append("Opravdu vymazat " + username + "?");
+        $("#userToDelete").attr("userId", id);
+        $("#confirmDeleteUser").modal('toggle');
+
+    }
+
+    $(document).on("click", "#btnRemoveUser", function () {
+        var value = $("#userToDelete").attr("userId");
+        deleteUser(value);
+
+
+    });
+
+    function deleteUser(id) {
+        document.getElementById('loadingUserDelete').style.visibility = 'visible';
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("removeUser", "admin")',
+            data: { 'idUser': id },
+            success: function (data) {
+                if (data.success) {
+                    location.reload();
+                }
+                else
+                {
+                    alert("Chyba: " + data.responseText);
+                }
+                document.getElementById('loadingUserDelete').style.visibility = 'hidden';
+
+            },
+            error: function (request, status, error) {
+                alert("Chyba: " + request.responseText);
+                document.getElementById('loadingUserDelete').style.visibility = 'hidden';
+            }
+        });
+
+    };
+
+</script>
+
+<h2>Užívatelé</h2>
+
+
+<table class="table table-hover">
+    <tr>
+        <th>
+            Přihl. jméno
+        </th>
+        <th>
+            E-mail
+        </th>
+        <th>
+            Registrace
+        </th>
+        <th>
+            Otázky
+        </th>
+        <th>
+            Reporty
+        </th>
+        
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Username)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.email)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.registrationTime)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.questionCount)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.reportsCount)
+        </td>        
+        <td>
+           Detail @*@Html.ActionLink("Detail", "#", new { id=item.userId })*@ |   
+            @if (item.isInAdminRole==false)
+            {
+                <a href="#" onclick="removeUser('@item.userId', '@item.Username')">Smazat</a>
+            }         
+        </td>
+    </tr>
+}
+
+</table>
+
+<br />
+<center>
+    Stránka @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) z @Model.PageCount
+
+    @Html.PagedListPager(Model, page => Url.Action("users", new { page }))
+</center>
+
+<div class="modal fade" id="confirmDeleteUser" role="dialog" data-backdrop="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color:#0078D7;border-radius:5px 5px 0px 0px;">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <center><h3 id ="headerModal"style="color:white;"></h3></center>
+            </div>
+            <div class="modal-body">
+                <div id="userToDelete" userId=""></div>
+                <div class="text-danger" id="errorBlockRemoveUser"></div>
+                <form class="form-inline">
+                    <div class="pull-right">
+                        <button data-dismiss="modal" class="form-control btn btn-default">Zrušit</button>
+                        <button id="btnRemoveUser" class="form-control btn btn-primary" style="background-color:#0078D7;">Smazat</button>
+                    </div>
+                        <img id="loadingUserDelete" class="img-responsive2" src="@Url.Content("~/Content/Resources/load.gif")" alt="" height="50" width="50" style="visibility:hidden;" />
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

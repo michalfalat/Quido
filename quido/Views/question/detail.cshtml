@@ -1,0 +1,1006 @@
+﻿@model quido.Controllers.questionController.DetailQuestionModel
+@{
+    ViewBag.Title = ViewBag.pageTitle;
+}
+@section Scripts
+{
+    <style>
+        .modal-header, .close {
+            background-color: #0078D7;
+            color: white !important;
+            text-align: center;
+            font-size: 25px;
+        }
+
+        @@media (max-width: 992px) {
+            #detail {
+                border-right: 1px solid white;
+            }
+        }
+
+        /* Portrait phones and smaller */
+        @@media (min-width: 993px) {
+            #detail {
+                border-right: 1px solid lightgrey;
+            }
+        }
+    </style>
+
+    <script>
+        var modelData = @Html.Raw(Json.Encode(Model));
+        var universalGraphDataLabel=[];
+        var universalGraphData = [];
+        var universalGraphColor= [];
+
+        var universalGraphDataLabelRespondents=[];
+        var universalGraphDataRespondents = [];
+        var universalGraphColorRespondents = [];
+
+
+        var genderGraphDataLabel=[];
+        var genderGraphData = [];
+        var genderGraphColor= [];
+
+        var ageGraphDataLabel=[];
+        var ageGraphData = [];
+        var ageGraphColor= [];
+
+        var countryGraphDataLabel=[];
+        var countryGraphData = [];
+        var countryGraphColor= [];
+
+        var myBarChart= null;
+        var myDonutChart = null;
+
+        var myBarChartRespondents= null;
+        var myDonutChartRespondents = null;
+        blueColors = ['#005eab','#0078d7','#1295ff','#89caff','#c4e4ff','#004781'];
+        greenColors = ['#00cc6a','#0aff89','#47ffa6','#85ffc4','#c2ffe1','#00a354 '];
+
+        showQuestionDetail();
+        $(document).ready(function () {
+            if(modelData.hasVoted===false)
+            {
+                $(".activeOnRespondentsTab").css('display','none');
+                $(".activeOnAnswersTab").css('display','none');
+                $(".hasNotVoted").css('display','block');
+
+            }
+            else
+            {
+                setTimeout(drawDonutChart,500);
+                $(".activeOnRespondentsTab").css('display','none');
+                $(".activeOnAnswersTab").css('display','block');
+                $(".hasNotVoted").css('display','none');
+
+            }
+
+
+
+            $(document).on("click", "#btnSendAnsweredVote", function () {
+                var valid= true;
+                var val = $.trim($("#inputAnsweredVote").val());
+                if(val.length==0)
+                {
+                    valid= false;
+                    $("#inputAnsweredVoteDiv").addClass("has-error");
+                }
+                else{
+                    $("#inputAnsweredVoteDiv").removeClass("has-error");
+                }
+
+
+                for (var i = 0, len = val.length; i < len; i++) {
+                    if(val[i] !=='0'&&val[i]!=='1'&&val[i] !=='2'&&val[i]!=='3'&&val[i] !=='4'&&val[i]!=='5'&&val[i] !=='6'&&val[i]!=='7'&&val[i] !=='8'&&val[i]!=='9'){
+                        valid= false;
+                        $("#inputAnsweredVoteDiv").addClass("has-error");
+                        break;
+                    }
+                    else{
+                        $("#inputAnsweredVoteDiv").removeClass("has-error");
+                    }
+                }
+                if(modelData.haveUserInfo===false)
+                {
+                    if($("#userYearOfBirth").val()==='0') {
+                        $("#userYearOfBirthDiv").addClass("has-error");
+                        valid=false;
+                    }
+                    else{
+                        $("#userYearOfBirthDiv").removeClass("has-error");
+                    }
+
+                    if($("#userGender").val()==='0') {
+                        $("#userGenderDiv").addClass("has-error");
+                        valid=false;
+                    }
+                    else{
+                        $("#userGenderDiv").removeClass("has-error");
+                    }
+                }
+                if(valid){
+
+                    var img = document.getElementById('loading');
+                    img.style.visibility = 'visible';
+                    sendAnsweredVote( val);
+
+                }
+
+
+            });
+
+            $(document).on("click", "#btnSendVote", function () {
+                var valid= true;
+                var selectedVal = $("#questionAnswersForVote").val();
+                if(selectedVal==='0')
+                {
+                    $("#questionAnswersForVoteDiv").addClass("has-error");
+                    valid=false;
+                }
+                else
+                {
+                    $("#questionAnswersForVoteDiv").removeClass("has-error");
+                }
+
+                if(modelData.haveUserInfo===false)
+                {
+                    if($("#userYearOfBirth").val()==='0') {
+                        $("#userYearOfBirthDiv").addClass("has-error");
+                        valid=false;
+                    }
+                    else{
+                        $("#userYearOfBirthDiv").removeClass("has-error");
+                    }
+
+                    if($("#userGender").val()==='0') {
+                        $("#userGenderDiv").addClass("has-error");
+                        valid=false;
+                    }
+                    else{
+                        $("#userGenderDiv").removeClass("has-error");
+                    }
+                }
+                if(valid){
+
+                    var img = document.getElementById('loading');
+                    img.style.visibility = 'visible';
+                    sendVote( selectedVal);
+
+                }
+
+
+            });
+
+
+
+            $(document).on("click", "#answersTab", function () {
+                $("#respondentsTab").removeClass("active");
+                $("#answersTab").addClass("active");
+                if(modelData.hasVoted===true)
+                {
+                    $(".activeOnRespondentsTab").css('display','none');
+                    $(".activeOnAnswersTab").css('display','block');
+                    $('#selectGraphInAnswerTab').trigger('change');
+                }
+
+
+            });
+            $(document).on("click", "#respondentsTab", function () {
+                $("#answersTab").removeClass("active");
+                $("#respondentsTab").addClass("active");
+                if(modelData.hasVoted===true)
+                {
+                    $(".activeOnAnswersTab").css('display','none');
+                    $(".activeOnRespondentsTab").css('display','block');
+                    $('#selectGraphInRespondentsTab').trigger('change');
+                }
+
+
+
+            });
+
+            $('#selectGraphInAnswerTab').on('change', function (e) {
+               
+                var valueSelected = this.value;
+                if(valueSelected==='0')
+                    drawDonutChart();
+                if(valueSelected==='1')
+                    drawBarChart();
+
+            });
+
+            $('#selectGraphInRespondentsTab').on('change', function (e) {
+
+                var valueSelected = this.value;
+                if(valueSelected==='0')
+                    drawDonutChartRespondents();
+                if(valueSelected==='1')
+                    drawBarChartRespondents();
+
+            });
+            $('#selectGenderInAnswerTab').on('change', function (e) {
+
+               
+                getFilteredData(modelData.questionId);
+
+            });
+            $('#selectCountryInAnswerTab').on('change', function (e) {
+
+                
+                getFilteredData(modelData.questionId);
+                
+
+            });
+
+            $('#selectAtributInRespondentsTab').on('change', function (e) {
+                universalGraphDataLabelRespondents = [];
+                universalGraphDataRespondents=[];
+                universalGraphColorRespondents=[];
+                var valueSelected = this.value;
+                //by gender
+                if(valueSelected==='0')
+                {
+                    // $.each(modelData.genderCounts, function (key, value) {
+                    universalGraphDataLabelRespondents = genderGraphDataLabel;
+                    universalGraphDataRespondents = genderGraphData;
+                    universalGraphColorRespondents=  genderGraphColor;
+                    //});
+                }
+                    //by country
+                else if(valueSelected==='1')
+                {
+                    //$.each(modelData.countryCounts, function (key, value) {
+                    universalGraphDataLabelRespondents = countryGraphDataLabel;
+                    universalGraphDataRespondents = countryGraphData;
+                    universalGraphColorRespondents = countryGraphColor;
+                    // });
+                }
+                    // by age
+                else if(valueSelected==='2')
+                {
+                    // $.each(modelData.ageCounts, function (key, value) {
+                    universalGraphDataLabelRespondents = ageGraphDataLabel;
+                    universalGraphDataRespondents = ageGraphData;
+                    universalGraphColorRespondents = ageGraphColor;
+                    //});
+                }
+
+                $('#selectGraphInRespondentsTab').trigger('change');
+            });
+
+
+        });
+
+        function showQuestionDetail() {
+            //if(modelData.hasVoted===true)
+            //    alert("Uz si hlasoval!!");
+            //else
+            //{
+            //    alert("este si nehlasoval");
+            //}
+            $('#detail').empty();
+            $("#headingQuestion").text(modelData.questionText);
+            var date = new Date(parseInt(modelData.questionCreated.substr(6)));
+            var html = '<h3>Informace</h3>\n';
+            html += 'Autor: ' + modelData.questionAuthorUserName + '<br/>\n';
+            html += 'Vytvořeno: ' + $.format.date(date, "dd.MM.yyyy HH:mm") + '<br/>\n';
+            html += 'Kategorie: ' + modelData.questionCategory + '<br/>\n';
+            if(modelData.questionType=='addChoiceNumber')
+                html += 'Typ: Číselná odpověd<br/>\n';
+            else if(modelData.questionType=='yesOrNo')
+                html += 'Typ: Ano/Ne<br/>\n';
+            else if(modelData.questionType=='selectFromChoices')
+                html += 'Typ: Výběr z možností<br/>\n';
+
+            html += 'Počet odpovědí: <span id="countInDetail">' + modelData.allVotesCount + '</span><br/>\n';
+            if (modelData.questionDescription !== null) {
+                html += '<h3>Popis</h3>\n';
+                html += modelData.questionDescription + '<br/>\n';
+            }
+            $.each(modelData.questionVotes, function (key, value) {
+                universalGraphDataLabel.push(value.questionAnswer.AnswerText);
+                universalGraphData.push(value.questionAnswerCount);
+                universalGraphColor.push(blueColors[key%6]);
+            });
+
+            $.each(modelData.genderCounts, function (key, value) {
+                universalGraphDataLabelRespondents.push(value.gender);
+                universalGraphDataRespondents.push(value.genderCount);
+                universalGraphColorRespondents.push(greenColors[key%6]);
+                genderGraphDataLabel.push(value.gender);
+                genderGraphData.push(value.genderCount);
+                genderGraphColor.push(greenColors[key%6]);
+            });
+            $.each(modelData.countryCounts, function (key, value) {
+                countryGraphDataLabel.push(value.country);
+                countryGraphData.push(value.countryCount);
+                countryGraphColor.push(greenColors[key%6]);
+            });
+            $.each(modelData.ageCounts, function (key, value) {
+                ageGraphDataLabel.push(value.age);
+                ageGraphData.push(value.ageCount);
+                ageGraphColor.push(greenColors[key%6]);
+            });
+            if(modelData.hasVoted===true){
+                html += '<h3>Děkujeme za vaší odpověď!</h3>\n';
+            }
+            else{
+                html+= '<div id="voteSection">';
+                html += '<h3>Tvoje odpověď</h3>\n';
+                if(modelData.haveUserInfo===false)
+                {
+                    html+= '<div class="form-group">\n';
+                    html += '<div id="userYearOfBirthDiv" class="col-md-11" style="padding-left:0px;">\n';
+                    html += '<select class="form-control" id="userYearOfBirth" style="max-width:100%; min-width:100%;">\n';
+                    html += '<option value="0">Vyberte rok narození..</option>';
+                    $.each(modelData.myYears, function (id, value) {
+                        html += '<option value="' + modelData.myYears[id] + '">';
+                        html += modelData.myYears[id] + '</option>';
+                    });
+                    html += '</select>';
+                    html += '</div>\n';
+                    html += '</div>\n';
+
+                    html+= '<div class="form-group">\n';
+                    html += '<div id="userGenderDiv" class="col-md-11" style="padding-left:0px;">\n';
+                    html += '<select class="form-control" id="userGender" style="max-width:100%; min-width:100%;margin-top:15px;">\n';
+                    html += '<option value="0">Vyberte pohlaví..</option>';
+                    html += '<option value="male">Muž</option>';
+                    html += '<option value="female">Žena</option>';
+                    html += '</select>';
+                    html += '</div>\n';
+                    html += '</div>\n';
+
+                }
+
+                if(modelData.questionType==='selectFromChoices' || modelData.questionType==='yesOrNo'){
+                    html+= '<div class="form-group">\n';
+                    html += '<div id="questionAnswersForVoteDiv" class="col-md-11" style="padding-left:0px;">\n';
+                    html += '<select class="form-control" id="questionAnswersForVote" style="max-width:100%; min-width:100%;margin-top:15px;">\n';
+                    html += '<option value="0">Vyberte  možnosť..</option>';
+                    $.each(modelData.questionVotes, function (id, value) {
+                        html += '<option value="' + value.questionAnswer.Id + '">';
+                        html += value.questionAnswer.AnswerText + '</option>';
+                    });
+                    html += '</select><br/>';
+                    html += '</div>\n';
+                    html += '</div>\n';
+                    html += '<div id="inputAnsweredVoteDiv" class="col-md-11">\n';
+                    html += '<button id="btnSendVote" type="button" class="btn btn-default pull-right">Hlasuj!</button>';
+                    html += '</div>\n';
+                }
+                if(modelData.questionType==='addChoiceNumber' ){
+                    html+= '<div class="form-group">\n';
+                    html += '<div id="inputAnsweredVoteDiv" class="col-md-11" style="padding-left:0px; margin-top:15px;">\n';
+                    html += '<input id="inputAnsweredVote" onkeypress="return isNumberKey(event)" type="text" class="form-control" placeholder="Vložte číslo" maxlength="9" style="max-width:100%; min-width:100%;">';
+                    html += '</div>\n';
+                    html += '</div>\n';
+                    html += '<div id="inputAnsweredVoteDiv" class="col-md-11">\n';
+                    html += '<button id="btnSendAnsweredVote" type="button" class="btn btn-default pull-right" style="margin-top:15px;">Hlasuj!</button>';
+                    html += '</div>\n';
+
+                }
+
+
+                html +='<img id="loading" class="img-responsive2" src="@Url.Content("~/Content/Resources/load.gif")" alt="" height="50" width="50" style="visibility:hidden;">';
+                html += '</div>';
+            }
+            html +='<div style="top:98%; position:absolute; "><A id="openReportModal" style="color:silver; font-style:italic;" href="#" title="Nahlasit nevhodný obsah">Nevhodný obsah</A></div>';
+            $('#detail').append(html);
+            $('#detail').attr('idQuestion',modelData.questionId);
+
+
+
+
+
+        };
+
+        function isNumberKey(evt){
+            var charCode = (evt.which) ? evt.which : evt.keyCode;
+            if (charCode > 31 && (charCode < 48 || charCode > 57))
+                return false;
+            return true;
+        }
+
+        function drawDonutChart()
+        {
+
+            $("#myChartDonut").css('display','block');
+            $("#myChartBar").css('display','none');
+            if(myDonutChart!=null)
+                myDonutChart.destroy();
+            fitToContainer(document.getElementById("myChartDonut"));
+            var ctx = document.getElementById("myChartDonut").getContext("2d");
+            myDonutChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+
+                    labels: universalGraphDataLabel,
+                    datasets: [{
+                        label: '# of Votes',
+                        data: universalGraphData,
+                        backgroundColor: universalGraphColor
+                    }],
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            fontSize:20,
+                            fontColor:'#000000',
+                            usePointStyle:true
+                        }
+                    },
+                    tooltips:{
+                        bodyFontSize:20,
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var allData = data.datasets[tooltipItem.datasetIndex].data;
+                                var tooltipLabel = data.labels[tooltipItem.index];
+                                var tooltipData = allData[tooltipItem.index];
+                                var total = 0;
+                                for (var i in allData) {
+                                    total += allData[i];
+                                }
+                                var tooltipPercentage = Math.round((tooltipData / total) * 100);
+                                return tooltipLabel + ': ' + tooltipData + ' (' + tooltipPercentage + '%)';
+                            }
+                        }
+                    }
+                }
+            });
+
+        }
+
+        function drawBarChart()
+        {
+            $("#myChartDonut").css('display','none');
+            $("#myChartBar").css('display','block');
+            if(myBarChart!=null)
+            {
+                myBarChart.destroy();
+            }
+            fitToContainer(document.getElementById("myChartBar"));
+            var ctx = document.getElementById("myChartBar").getContext("2d");
+
+            myBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+
+                    labels: universalGraphDataLabel,
+                    datasets: [{
+                        data: universalGraphData,
+                        backgroundColor: universalGraphColor
+
+                    }],
+                },
+                options: {
+                    legend: {
+                        display: false,
+                        position: 'right',
+                        labels: {
+                            fontSize:20,
+                            fontColor:'#000000',
+                            usePointStyle:true
+                        }
+
+                    },
+                    tooltips:{
+                        bodyFontSize:20,
+                        callbacks: {
+                            title: function (tooltipItem, data) { return ''; },
+                            label: function(tooltipItem, data) {
+                                var allData = data.datasets[tooltipItem.datasetIndex].data;
+                                var tooltipLabel = data.labels[tooltipItem.index];
+                                var tooltipData = allData[tooltipItem.index];
+                                var total = 0;
+                                for (var i in allData) {
+                                    total += allData[i];
+                                }
+                                var tooltipPercentage = Math.round((tooltipData / total) * 100);
+                                return tooltipLabel + ': ' + tooltipData + ' (' + tooltipPercentage + '%)';
+                            }
+                        }
+                    },
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero:true
+                            }
+                        }]
+                    }
+                }
+
+
+            });
+
+        }
+
+
+        function drawBarChartRespondents()
+        {
+            $("#myChartDonutRespondents").css('display','none');
+            $("#myChartBarRespondents").css('display','block');
+            if(myBarChartRespondents!=null)
+            {
+                myBarChartRespondents.destroy();
+            }
+            fitToContainer(document.getElementById("myChartBarRespondents"));
+            var ctx = document.getElementById("myChartBarRespondents").getContext("2d");
+
+            myBarChartRespondents = new Chart(ctx, {
+                type: 'bar',
+                data: {
+
+                    labels: universalGraphDataLabelRespondents,
+                    datasets: [{
+                        data: universalGraphDataRespondents,
+                        backgroundColor: universalGraphColorRespondents
+
+                    }],
+                },
+                options: {
+                    legend: {
+                        display: false,
+                        position: 'right',
+                        labels: {
+                            fontSize:20,
+                            fontColor:'#000000',
+                            usePointStyle:true
+                        }
+
+                    },
+                    tooltips:{
+                        bodyFontSize:20,
+                        callbacks: {
+                            title: function (tooltipItem, data) { return ''; },
+                            label: function(tooltipItem, data) {
+                                var allData = data.datasets[tooltipItem.datasetIndex].data;
+                                var tooltipLabel = data.labels[tooltipItem.index];
+                                var tooltipData = allData[tooltipItem.index];
+                                var total = 0;
+                                for (var i in allData) {
+                                    total += allData[i];
+                                }
+                                var tooltipPercentage = Math.round((tooltipData / total) * 100);
+                                return tooltipLabel + ': ' + tooltipData + ' (' + tooltipPercentage + '%)';
+                            }
+                        }
+                    },
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero:true
+                            }
+                        }]
+                    }
+                }
+
+
+            });
+
+        }
+
+
+        function drawDonutChartRespondents()
+        {
+            $("#myChartDonutRespondents").css('display','block');
+            $("#myChartBarRespondents").css('display','none');
+            if(myDonutChartRespondents!=null)
+            {
+                myDonutChartRespondents.destroy();
+            }
+            fitToContainer(document.getElementById("myChartDonutRespondents"));
+            var ctx = document.getElementById("myChartDonutRespondents").getContext("2d");
+
+            myDonutChartRespondents = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+
+                    labels: universalGraphDataLabelRespondents,
+                    datasets: [{
+                        data: universalGraphDataRespondents,
+                        backgroundColor: universalGraphColorRespondents
+
+                    }],
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            fontSize:20,
+                            fontColor:'#000000',
+                            usePointStyle:true
+                        }
+                    },
+                    tooltips:{
+                        bodyFontSize:20,
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var allData = data.datasets[tooltipItem.datasetIndex].data;
+                                var tooltipLabel = data.labels[tooltipItem.index];
+                                var tooltipData = allData[tooltipItem.index];
+                                var total = 0;
+                                for (var i in allData) {
+                                    total += allData[i];
+                                }
+                                var tooltipPercentage = Math.round((tooltipData / total) * 100);
+                                return tooltipLabel + ': ' + tooltipData + ' (' + tooltipPercentage + '%)';
+                            }
+                        }
+                    }
+                }
+
+
+            });
+
+        }
+
+
+
+
+        function sendVote(id) {
+            if(modelData.haveUserInfo===false)
+            {
+                var yob =  $("#userYearOfBirth").val();
+                var gender =  $("#userGender").val();
+            }
+            else
+            {
+                var yob = modelData.userYearOfBirth;
+                var gender = modelData.userGender;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("sendVote", "question")',
+                data: { 'idAnswer': id, 'yearOfBirth': yob, 'gender': gender, 'countryCode': modelData.userCountryCode  },
+
+                success: function (data) {
+                    if (data != null && data.success) {
+                        getNewDetail(modelData.questionId);
+                        //spristupnit graf
+
+
+                    } else {
+                        alert("Vyskytla se chyba: " + data.responseText);
+                    }
+                    getNewDetail(modelData.questionId);
+                },
+                error: function (request, status, error) {
+                    alert("Vyskytla se chyba: " + request.responseText);
+                    document.getElementById('loading').style.visibility = 'hidden';
+                }
+            });
+
+        };
+
+        function sendAnsweredVote(number) {
+            if(modelData.haveUserInfo===false)
+            {
+                var yob =  $("#userYearOfBirth").val();
+                var gender =  $("#userGender").val();
+            }
+            else
+            {
+                var yob = modelData.userYearOfBirth;
+                var gender = modelData.userGender;
+            }
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("sendAnsweredVote", "question")',
+                data: { 'idQuestion': modelData.questionId, 'number': number, 'yearOfBirth': yob, 'gender': gender, 'countryCode': modelData.userCountryCode },
+
+                success: function (data) {
+                    if (data != null && data.success) {
+                        getNewDetail(modelData.questionId);
+                        //spristupnit graf
+
+                        //vypnut hlasovanie
+                        //$("#voteSection").empty().append("<h3>Děkujeme za hlas!</h3>\n");
+                    } else {
+                        alert("Vyskytla se chyba: " + data.responseText);
+                    }
+
+                },
+                error: function (request, status, error) {
+                    alert("Vyskytla se chyba: " + request.responseText);
+                    document.getElementById('loading').style.visibility = 'hidden';
+                }
+            });
+
+        };
+
+        function getNewDetail(id){
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("getNewQuestionData", "question")',
+                data: { 'id': id },
+                //contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (responseData) {
+
+                    if(responseData.success===false)
+                    {
+                        alert("Vyskytla se chyba: " + responseData.responseText);
+                        document.getElementById('loading').style.visibility = 'hidden';
+                    }
+                    else{
+                        $("#voteSection").empty().append("<h3>Děkujeme za vaší odpověď!</h3>\n");
+                        $(".hasNotVoted").css('display','none');
+                        var data= JSON.parse(responseData);
+
+                        universalGraphDataLabel = [];
+                        universalGraphData=[];
+                        universalGraphColor=[];
+
+                        genderGraphDataLabel=[];
+                        genderGraphData = [];
+                        genderGraphColor= [];
+
+                        ageGraphDataLabel=[];
+                        ageGraphData = [];
+                        ageGraphColor= [];
+
+                        countryGraphDataLabel=[];
+                        countryGraphData = [];
+                        countryGraphColor= [];
+
+                        $.each(data.questionVotes, function (key, value) {
+                            universalGraphDataLabel.push(value.questionAnswer.AnswerText);
+                            universalGraphData.push(value.questionAnswerCount);
+                            universalGraphColor.push(blueColors[key%6]);
+                        });
+
+                        $.each(data.genderCounts, function (key, value) {
+                            genderGraphDataLabel.push(value.gender);
+                            genderGraphData.push(value.genderCount);
+                            genderGraphColor.push(greenColors[key%6]);
+                        });
+                        $.each(data.countryCounts, function (key, value) {
+                            countryGraphDataLabel.push(value.country);
+                            countryGraphData.push(value.countryCount);
+                            countryGraphColor.push(greenColors[key%6]);
+                        });
+                        $.each(data.ageCounts, function (key, value) {
+                            ageGraphDataLabel.push(value.age);
+                            ageGraphData.push(value.ageCount);
+                            ageGraphColor.push(greenColors[key%6]);
+                        });
+                        modelData.hasVoted = true;
+                        $('#selectAtributInRespondentsTab').trigger('change');
+                        if($("#respondentsTab").hasClass("active"))
+                        {
+                            $(".activeOnRespondentsTab").css('display','block');
+                            //$(".activeOnAnswersTab").css('display','none');
+
+                        }
+                        else if($("#answersTab").hasClass("active"))
+                        {
+                            $(".activeOnAnswersTab").css('display','block');
+                            //$('#selectGraphInAnswerTab').trigger('change');
+                            var valueSelected= $('#selectGraphInAnswerTab').val() ;
+                            if(valueSelected==='0')
+                                drawDonutChart();
+                            if(valueSelected==='1')
+                                drawBarChart();
+                        }
+
+
+
+                        $('#countInDetail').empty();
+                        $('#countInDetail').append(data.allVotesCount);
+                        //document.getElementById('loading').style.visibility = 'hidden';
+                    }
+
+                },
+                error: function (request, status, error) {
+                    alert("Chyba: " + request.responseText);
+                    document.getElementById('loading').style.visibility = 'hidden';
+                }
+            });
+
+        }
+
+        function getFilteredData(id){
+            debugger;
+            var gender = $('#selectGenderInAnswerTab').val();
+            var country = $('#selectCountryInAnswerTab').val();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("getFilteredData", "question")',
+                data: { 'id': id , 'gender': gender, 'country': country},
+                //contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (responseData) {
+
+                    if(responseData.success===false)
+                    {
+                        alert("Vyskytla se chyba: " + responseData.responseText);
+                        document.getElementById('loading').style.visibility = 'hidden';
+                    }
+                    else{
+                        
+                        var data= JSON.parse(responseData);
+
+                        universalGraphDataLabel = [];
+                        universalGraphData=[];
+                        universalGraphColor=[];
+
+
+                        $.each(data.questionVotes, function (key, value) {
+                            universalGraphDataLabel.push(value.questionAnswer.AnswerText);
+                            universalGraphData.push(value.questionAnswerCount);
+                            universalGraphColor.push(blueColors[key%6]);
+                        });
+
+                        $('#selectGraphInAnswerTab').trigger('change');
+                    }
+
+                },
+                error: function (request, status, error) {
+                    alert("Chyba: " + request.responseText);
+                    document.getElementById('loading').style.visibility = 'hidden';
+                }
+            });
+
+        }
+
+        function fitToContainer(canvas){
+            canvas.style.width='100%';
+            canvas.style.height='100%';
+            canvas.width  = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+
+        $(document).on("click", "#openReportModal", function () {
+            $("#reportModal").modal();
+
+
+        });
+
+        function sendReport () {
+
+            var sendReportModel = {
+                questionId: '@Model.questionId',
+                reason: $('#reportReason').val(),
+                contact: $('#reportContact').val(),
+
+            };
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("sendReport", "question")',
+                content: "application/json; charset=utf-8",
+                dataType: "json",
+                data: sendReportModel, // returns all the data in your form
+                success: function (response) {
+                    if(response.success)
+                    {
+                        $('#modalReportBody').empty().append("<h3>Otázka byla nahlášena!</h3><button type='button' style='background-color:#0078D7' class='btn btn-primary pull-right'  data-dismiss='modal'>Ok</button>");
+
+                    }
+                },
+                error: function (response) {
+                    alert(response.error);
+
+                }
+
+            });
+        };
+        $("#btnSendReport").click(function () {
+
+            if (!$.trim($("#reportReason").val())) {
+                $("#reasonDiv").addClass("has-error");
+            }
+            else
+            {
+                $("#reasonDiv").removeClass("has-error");
+                sendReport();
+            }
+
+        });
+    </script>
+}
+
+<div id="mainbody" class="jumbotron" style="border-radius: 3px;border: 1px solid #DDDDDD;background-color:white;padding-left:10px;padding-right:10px;padding-top:10px;padding-bottom:10px; margin-top:15px;">
+    <div id="body" class="container">
+        @*<div class="col-md-12" style="background-color:white;"><center><h2 id="headingQuestion"></h2></center></div>*@
+        <div id="detail" class="col-md-4" style="background-color:white; min-height:500px;margin-top:0px; margin-bottom:20px;"></div>
+        <div id="graphs" class="col-md-8" style="background-color:white;min-height:500px;">
+            <div style="background-color:white;"><h2 id="headingQuestion"></h2></div>
+            <ul class="nav nav-tabs">
+                <li id="answersTab" class="active"><a href="#">Odpovědi</a></li>
+                <li id="respondentsTab"><a href="#">Respondenti</a></li>
+            </ul>
+            <div id="graphBody" style="padding-top:10px;">
+                <div class="activeOnAnswersTab" style="display:none;">
+                    <form class="form-inline">
+                        <select id="selectGraphInAnswerTab" class="form-control" style="min-width:33%;">
+                            <option value="0">Koláčový graf</option>
+                            <option value="1">Sloupcový graf</option>
+                        </select>
+
+                        <select id="selectGenderInAnswerTab" class="form-control" style="min-width:33%;">
+                            <option value="0">Obě pohlaví</option>
+                            <option value="male">Jenom muži</option>
+                            <option value="female">Jenom ženy</option>
+                        </select>
+                        <select id="selectCountryInAnswerTab" class="form-control" style="min-width:30%;">
+                            <option value="0">Všechny krajiny</option>
+                            <option value="SK">Slovensko</option>
+                            <option value="CZ">Česko</option>
+                            <option value="undefined">Ostatní</option>
+                        </select>
+                        @*<label><input type="checkbox" value="">Věk</label>
+                        <label>Od:</label>
+                        <input style="width:25px;" placeholder="0" />
+                        <label>Do:</label>
+                        <input style="width:25px;" placeholder="100"/>*@
+                    </form>
+                    <div style="height:350px;width:100%;padding-top:30px;">
+                        <canvas id="myChartDonut" style="width:100%;"></canvas>
+                        <canvas id="myChartBar" style="width:100%;display:none;"></canvas>
+                    </div>
+                </div>
+                <div class="activeOnRespondentsTab" style="display:none;">
+                    <form class="form-inline">
+                        <select id="selectGraphInRespondentsTab" class="form-control" style="min-width:45%;">
+                            <option value="0">Koláčový graf</option>
+                            <option value="1">Sloupcový graf</option>
+                        </select>
+                        <select id="selectAtributInRespondentsTab" class="form-control" style="min-width:45%;">
+                            <option value="0">Pohlaví</option>
+                            <option value="1">Národnost</option>
+                            <option value="2">Věk</option>
+                        </select>
+                    </form>
+                    <div style="height:350px;width:100%;padding-top:30px;">
+                        <canvas id="myChartDonutRespondents" style="width:100%;"></canvas>
+                        <canvas id="myChartBarRespondents" style="width:100%;display:none;"></canvas>
+                    </div>
+                </div>
+                <div class="hasNotVoted" style="display:none;">
+
+                    <div style="height:350px;width:100%;padding-top:30px; font-style:italic;">
+                        Pro zobrazení výsledku musíte odpovědět.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reportModal" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header" style="padding:15px 30px; border-radius:5px 5px 0px 0px;">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h3>Nahlásení nevhodného obsahu</h3>
+            </div>
+
+            <div id="modalReportBody" class="modal-body" style="padding:40px 50px;">
+                <form role="form" id="reportForm">
+                    <div id="reasonDiv" class="form-group" style="margin-bottom:15px;">
+                        <label>Důvod:</label><label style="color:red;">*</label>
+                        <textarea style="max-width: 100% !important;" rows="2" class="form-control col-md-12 col-lg-12" id="reportReason" name="reportReason" placeholder="Zadejte důvod" maxlength="300"></textarea>
+
+                    </div>
+                    <div class="form-group" style="margin-top:15px;">
+                        <label>Kontakt:</label>
+                        <textarea style="max-width: 100% !important;" rows="1" class="form-control" id="reportContact" name="reportContact" placeholder="Kontakt na vás" maxlength="100"></textarea>
+                    </div>
+                </form>
+
+                <div class="form-group">
+                    <button id="btnSendReport" style="background-color:#0078D7" class="btn btn-primary pull-right"><span class="glyphicon glyphicon-plus"></span> Odeslat</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

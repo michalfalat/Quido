@@ -10,7 +10,6 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using quido.Models;
 using quido.Helper;
-using quido.DataContexts;
 using System.Data.Entity.Validation;
 using System.Diagnostics;
 
@@ -79,7 +78,7 @@ namespace quido.Controllers
 
             // This doesn't count login failures towards account lockout
             // To enable password failures to trigger account lockout, change to shouldLockout: true
-            var result = await SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout: false);
+            var result = await SignInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, shouldLockout: false);
             switch (result)
             {
                 case SignInStatus.Success:
@@ -92,6 +91,38 @@ namespace quido.Controllers
                 default:
                     ModelState.AddModelError("", "Invalid login attempt.");
                     return View(model);
+            }
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        public JsonResult LoginAjax(LoginViewModel m)
+        {
+
+
+            //This doesn't count login failures towards account lockout
+            // To enable password failures to trigger account lockout, change to shouldLockout: true
+            var db = new ApplicationDbContext();
+            var user = db.Users.Where(u => u.UserName == m.UserName && u.isDeleted == true).FirstOrDefault();
+            if(user!=null)
+            {
+                return Json(new { success = false, responseText = "Účet neexistuje" }, JsonRequestBehavior.AllowGet);
+            }
+                
+
+
+            var result = SignInManager.PasswordSignIn(m.UserName, m.Password, m.RememberMe, shouldLockout: false);
+            switch (result)
+            {
+                case SignInStatus.Success:
+                    return Json(new { success = true, responseText = "" }, JsonRequestBehavior.AllowGet);
+                case SignInStatus.LockedOut:
+                    return Json(new { success = false, responseText = "Účet uzamknutý" }, JsonRequestBehavior.AllowGet);
+                case SignInStatus.RequiresVerification:
+                    return Json(new { success = false, responseText = "Potřebná verifikace" }, JsonRequestBehavior.AllowGet); ;
+                case SignInStatus.Failure:
+                default:
+                    return Json(new { success = false, responseText = "Nesprávné jméno nebo heslo" }, JsonRequestBehavior.AllowGet); 
             }
         }
 
@@ -178,49 +209,7 @@ namespace quido.Controllers
                 {
                     
                     await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
-                    //var myCat = new QuestionCategory() { Name = "ostatne" };
-
-                    //var db = new ApplicationDbContext();
-                         
-                    //    db.questionCategories.Add(myCat);
-                    //    db.SaveChanges();
-                    // db.questions.Add(myQuestion);
-
-                    //var currentUMUser = await UserManager.FindByIdAsync(User.Identity.GetUserId());
-                    //var currentUser = db.Users.Find(currentUMUser.Id);
-
-                    //var myQuestion = new Question()
-                    //{
-                    //    Author = currentUser,
-                    //    QuestionText = "ako sa máš?",
-                    //    Description = "popis otazky",
-                    //    QuestionCat = myCat,
-                    //    QuestionCreated = DateTime.Now
-
-                    //};
-                  
                     
-                    //try
-                    //{                    
-
-                    //    db.questions.Add(myQuestion);
-                    //    db.SaveChanges();     
-
-                    
-                    //}
-                    //catch (DbEntityValidationException dbEx)
-                    //{
-                    //    foreach (var validationErrors in dbEx.EntityValidationErrors)
-                    //    {
-                    //        foreach (var validationError in validationErrors.ValidationErrors)
-                    //        {
-                                
-                    //            Trace.TraceInformation("Property: {0} Error: {1}",
-                    //                                    validationError.PropertyName,
-                    //                                    validationError.ErrorMessage);
-                    //        }
-                    //    }
-                    //}
 
 
 
@@ -269,8 +258,9 @@ namespace quido.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = await UserManager.FindByNameAsync(model.Email);
-                if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)))
+                ApplicationDbContext db = new ApplicationDbContext();
+                var user = db.Users.Where(_u => _u.Email == model.Email).FirstOrDefault();                
+                if (user == null )
                 {
                     // Don't reveal that the user does not exist or is not confirmed
                     return View("ForgotPasswordConfirmation");
@@ -278,10 +268,10 @@ namespace quido.Controllers
 
                 // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
                 // Send an email with this link
-                // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
-                // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
-                // return RedirectToAction("ForgotPasswordConfirmation", "Account");
+                string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
+                await UserManager.SendEmailAsync(user.Id, "Nové Heslo - Quido", "Zmente své heslo kliknutím na nasledujici odkaz:"  + callbackUrl );
+                return RedirectToAction("ForgotPasswordConfirmation", "Account");
             }
 
             // If we got this far, something failed, redisplay form

@@ -6,7 +6,6 @@ using Microsoft.Owin.Security.Cookies;
 using Microsoft.Owin.Security.Google;
 using Owin;
 using quido.Models;
-using quido.DataContexts;
 
 namespace quido
 {

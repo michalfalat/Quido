@@ -1,0 +1,122 @@
+﻿@model  PagedList.IPagedList<quido.Controllers.adminController.ReportsAdmin>
+@using PagedList.Mvc;
+@{
+    ViewBag.Title = "Reporty - admin Quido";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+<script>
+    function removeQuestion(id)
+    {
+        $("#questionToDelete").attr("questionId", id);
+        $("#confirmDeleteUser").modal('toggle');
+
+    }
+
+    $(document).on("click", "#btnRemoveQuestion", function () {
+        var value = $("#questionToDelete").attr("questionId");
+        deleteQuestion(value);
+
+
+    });
+
+    function deleteQuestion(id) {
+        document.getElementById('loadingQuestionDelete').style.visibility = 'visible';
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("removeQuestion", "question")',
+            data: { 'idQuestion': id },
+            success: function (data) {
+                if (data.success) {
+                    location.reload();
+                }
+                else
+                {
+                    alert("Chyba: " + data.responseText);
+                }
+                document.getElementById('loadingUserDelete').style.visibility = 'hidden';
+
+            },
+            error: function (request, status, error) {
+                alert("Chyba: " + request.responseText);
+                document.getElementById('loadingUserDelete').style.visibility = 'hidden';
+            }
+        });
+
+    };
+
+</script>
+
+<h2>Reporty</h2>
+
+
+<table class="table table-hover">
+    <tr>
+        <th>
+            Dátum
+        </th>
+        <th>
+            Duvod
+        </th>
+        <th>
+            Text Otázky
+        </th>
+        <th>
+            Kontakt
+        </th>
+
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.reportCreated)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.reason)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.questionText)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.contact)
+            </td>
+            <td>
+                <a href="@Url.Action("detail", "question", new { id = item.questionId })">Detail otázky</a> |
+                <a href="#" onclick="removeQuestion('@item.questionId')">Smazat otazku</a>
+            </td>
+        </tr>
+    }
+
+</table>
+
+<br />
+<center>
+    Stránka @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) z @Model.PageCount
+
+    @Html.PagedListPager(Model, page => Url.Action("questions", new { page }))
+</center>
+
+<div id="confirmDeleteUser" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header" style="padding:15px 30px;background-color: dodgerblue;color: white !important;text-align: center;border-radius:5px 5px 0px 0px;" ">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4>@*<span class="glyphicon glyphicon-plus"></span>*@Opravdu chcete vymazat otázku?</h4>
+            </div>
+            <div class="modal-footer">
+                <div id="questionToDelete" questionId=""></div>
+                <button type="button" data-dismiss="modal" class="btn">Zrušit</button>
+                <button id="btnRemoveQuestion" type="button" class="btn btn-primary">Smazat</button>
+                <center>
+                    <img id="loadingQuestionDelete" class="img-responsive2" src="@Url.Content("~/Content/Resources/load.gif")" alt="" height="50" width="50" style="visibility:hidden;" />
+                </center>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+

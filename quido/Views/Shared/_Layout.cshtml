@@ -6,57 +6,295 @@
     <title>@ViewBag.Title - Quido</title>
     @Styles.Render("~/Content/css")
     @Scripts.Render("~/bundles/modernizr")
-   
-    
+    <link rel="icon" href="@Url.Content("~/content/resources/favicon.ico")" />
+    <style>
+        .has-feedback-left .form-control {
+            padding-right: 12px;
+            padding-left: 34px;
+        }
+
+            .has-feedback-left .form-control.input-sm,
+            .has-feedback-left.form-group-sm .form-control {
+                padding-left: 30px;
+            }
+
+            .has-feedback-left .form-control.input-lg,
+            .has-feedback-left.form-group-lg .form-control {
+                padding-left: 46px;
+            }
+
+        .has-feedback-left .form-control-feedback {
+            left: 0;
+        }
+
+        .clickableQuestion {
+            border-radius: 3px;
+            cursor: pointer;
+            border: 1px solid #DDDDDD;
+            background-color: white;
+            padding: 15px;
+            height: 120px;
+        }
+        @@media (max-width: 768px) {
+        #loginPartial {
+                
+                width:100%;
+                text-align:center;
+            }
+    }
+
+    /* Portrait phones and smaller */
+        @@media (min-width: 768px) {
+           #loginPartial {
+                
+            }
+        }
+    </style>
 
 </head>
-<body>
-<div class="navbar navbar-inverse navbar-fixed-top">
-  <div class="container">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <a class="navbar-brand" href="@Url.Action("index", "home")" >Quido</a>        
-    </div>
-    <div class="navbar-collapse collapse" id="searchbar">     
-      <ul class="nav navbar-nav navbar-right">
-        @Html.Partial("_LoginPartial")
-      </ul>
-        <a class="navbar-left" href="@Url.Action("index", "home")">
-            <img class="img-responsive2" src="@Url.Content("~/Content/Resources/logo.png")" alt="" height="50" width="50">
-        </a>
+<body style="background-color:#F2F2F2;">
+    <div id="cookieInform" class="text-center" style="position:fixed; bottom:0px;width:100%; min-height:40px; background-color:white; z-index:10000;  display:none;">Tenhle web používá soubory cookies. Prohlížením webu vyjadřujete souhlas s jejich používáním. <A href="@Url.Action("cookies", "home")">Více informacii</A>&nbsp;&nbsp;<button class="btn btn-default btn-sm" onclick="acceptCookies()" style="margin-top:3px;">Rozumím</button></div>
 
-
-                <form class="navbar-form">
-                    <div class="form-group" style="display:inline; ">
-                        <div class="input-group col-md-offset-2 col-lg-offset-2 col-md-8 col-sm-offset-3  col-sm-6" style="display:table;">
-                            <input class="form-control" style="max-width:100%;width:100%;" name="search" placeholder="Search question.." autocomplete="off" autofocus="autofocus" type="text">
-                            <div class="input-group-btn">
-                                <button class="btn btn-default" type="submit"><i class="glyphicon glyphicon-search"></i></button>
-                            </div>
+    <div id="fb-root"></div>
+    <script>
+        (function(d, s, id) {
+          var js, fjs = d.getElementsByTagName(s)[0];
+          if (d.getElementById(id)) return;
+          js = d.createElement(s); js.id = id;
+          js.src = "//connect.facebook.net/sk_SK/sdk.js#xfbml=1&version=v2.8";
+          fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+    </script>
+    <div class="navbar navbar-default navbar-fixed-top" style="background-color:white;">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" style="padding-top:0px;" href="@Url.Action("index", "home")"><img class="img-responsive2" src="@Url.Content("~/Content/Resources/logo2.png")" alt="" height="50" width="160" style="float:right"></a>
+            </div>
+            <div class="navbar-collapse collapse" id="searchbar">
+                <ul id="loginPartial" class="nav navbar-nav navbar-right">
+                    @Html.Partial("_LoginPartial")
+                </ul>
+                @*<a class="navbar-left" href="@Url.Action("index", "home")">
+                    <img class="img-responsive2" src="@Url.Content("~/Content/Resources/logo.png")" alt="" height="50" width="50">
+                </a>*@
+                <div class="form-group" style="display:inline; ">
+                    <div class="input-group col-md-offset-2 col-lg-offset-2 col-md-7 col-sm-offset-3  col-sm-6" style="display:table; margin-top:10px;margin-bottom:10px;">
+                        <input id="searchedText" class="form-control" style="max-width:100%;width:100%;" name="search" placeholder="Vyhledej otázku.." autocomplete="off" type="text">
+                        <div class="input-group-btn">
+                            <button id="searchQuestion" class="btn btn-default" type="submit"><i class="glyphicon glyphicon-search"></i></button>
                         </div>
-                    </div>
-                </form>
+                    </div>                    
+                </div>
 
-</div><!--/.nav-collapse -->
-  </div>
-</div>
-               
-     
-    <div class="container body-content">
+
+
+            </div><!--/.nav-collapse -->
+        </div>
+    </div>
+    
+    <div class="modal fade" id="loginModal" role="dialog" data-backdrop="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color:#0078D7;border-radius:5px 5px 0px 0px;">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <center><h3 style="color:white;">Přihlášení</h3></center>
+                </div>
+                <div class="modal-body">
+                    <div class="text-danger" id="errorBlockLogin"></div>
+                    <form role="form">
+
+                        <div class="form-group has-feedback has-feedback-left">
+                            <input id="inputUserName" class="form-control" type="text" name="user" placeholder="Přihl. jméno">
+                            <i class="form-control-feedback glyphicon glyphicon-user"></i>
+                        </div>
+                        <div class="form-group has-feedback has-feedback-left">
+                            <input id="inputPassword" class="form-control" type="password" name="pass" placeholder="Heslo">
+                            <i class="form-control-feedback glyphicon glyphicon-lock"></i>
+                        </div>
+                        <div class="checkbox">
+                            <label><input id="rememberLogin" type="checkbox" value="rememeber">Zapamatovat</label>
+                        </div>
+                    </form>
+                    <button id="btnLogin" class="form-control btn btn-primary" style="background-color:#0078D7;">Přihlásit</button>
+                    <center>
+                        <img id="loadingLoginModal" class="img-responsive2" src="@Url.Content("~/Content/Resources/load.gif")" alt="" height="50" width="50" style="visibility:hidden;" />
+                    </center>
+                    <div class="modal-footer">
+                        <a href="@Url.Action("Register", "Account")">Registrace</a> - <a href="@Url.Action("ForgotPassword", "Account")">Zapomenuté heslo?</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container body-content ">
         @RenderBody()
         <hr />
         <footer>
-            <p>&copy; @DateTime.Now.Year - Quido</p>
+            <div class="col-lg-10 col-lg-offset-1 col-md-10 col-md-offset-1 col-sm-10 col-sm-offset-1">
+                <div class="row text-center">
+                    <a href="@Url.Action("FAQ", "Home")">FAQ</a> |
+                    <a href="@Url.Action("About", "Home")">O Webu</a> |
+                    <a href="@Url.Action("Contact", "Home")">Kontakt</a>
+                    <p>&copy; @DateTime.Now.Year - Quido</p>
+                </div>
+            </div>
         </footer>
     </div>
-
+    
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+    <script src="~/Scripts/Chart.bundle.min.js"></script>
+    <script src="~/Scripts/jquery-dateFormat.min.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/1000hz-bootstrap-validator/0.10.2/validator.min.js"></script>
+    <script>
+        $('#openLoginModal').on("click", function () {
+            $("#loginModal").modal('toggle');
+
+        });
+
+        $('#btnLogin').on("click", function () {
+
+            $('#inputUserName').parent().removeClass('has-error');
+            $('#inputPassword').parent().removeClass('has-error');
+            $('#errorBlockLogin').empty();
+            var userName = $.trim($('#inputUserName').val());
+            var password = $.trim($('#inputPassword').val());
+            if (userName === null || userName.length === 0 || password === null || password.length === 0)
+                $('#errorBlockLogin').append('Vyplnte všechny polia!');
+            else {
+                sendLoginAjax(userName, password);
+            }
+            if (userName === null || userName.length === 0)
+                $('#inputUserName').parent().addClass('has-error');
+            if (password === null || password.length === 0)
+                $('#inputPassword').parent().addClass('has-error');
+
+        });
+        $('#searchQuestion').on("click", function () {
+            var searchedText = $.trim($('#searchedText').val());
+            searchedText = searchedText.replace(/[`~!@@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '');
+            if (searchedText.length !== 0) {
+                searchedText = searchedText.replace(/ /g, '&');
+                var url = '@Url.Action("search", "question", new { id = "replace" })';
+                window.location.href = url.replace('replace', searchedText);
+            }
+
+        });
+
+        document.getElementById('searchedText').onkeypress = function (e) {
+            if (!e) e = window.event;
+            var keyCode = e.keyCode || e.which;
+            if (keyCode == '13') {
+                $("#searchQuestion").click();
+                return false;
+            }
+        }
+
+        document.getElementById('inputPassword').onkeypress = function (e) {
+            if (!e) e = window.event;
+            var keyCode = e.keyCode || e.which;
+            if (keyCode == '13') {
+                $("#btnLogin").click();
+                return false;
+            }
+        }
+
+
+        function sendLoginAjax(userName, password) {
+            if (document.getElementById('rememberLogin').checked) {
+                var remember = true;
+            } else {
+                var remember = false;
+            }
+            var m = {
+                RememberMe: remember,
+                UserName: userName,
+                Password: password
+            }
+            document.getElementById('loadingLoginModal').style.visibility = 'visible';
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("LoginAjax", "Account")',
+                data: m,
+                success: function (data) {
+                    if (data != null && data.success) {
+                        var url = '@Url.Action("index", "manage")';
+                        window.location.href = url;
+                    } else {
+                        document.getElementById('loadingLoginModal').style.visibility = 'hidden';
+                        $('#errorBlockLogin').append(data.responseText);
+                        $('#inputUserName').val("");
+                        $('#inputPassword').val("");
+                    }
+
+
+                },
+                error: function (request, status, error) {
+                    document.getElementById('loadingLoginModal').style.visibility = 'hidden';
+                    $('#errorBlockLogin').empty();
+                    $('#errorBlockLogin').append(request.responseText);
+                    $('#inputUserName').val("");
+                    $('#inpupassword').val("");
+
+                }
+            });
+        };
+
+
+        function acceptCookies()
+        {
+            setCookie("useCookie", "true", 365);
+            $('#cookieInform').slideUp("slow");
+        }
+
+        function setCookie(cname, cvalue, exdays) {
+            var d = new Date();
+            d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+            var expires = "expires=" + d.toUTCString();
+            document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        }
+
+        function getCookie(cname) {
+            var name = cname + "=";
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+
+        function checkCookie() {
+            var chc = getCookie("useCookie");
+            if (chc != "") {
+            } else {
+                $('#cookieInform').slideDown("slow");
+               
+            }
+        }
+        $(document).ready(function () {
+            setTimeout(function () { checkCookie(); }, 500);
+        })
+
+       
+
+
+
+    </script>
     @RenderSection("scripts", required: false)
+
 </body>
 </html>

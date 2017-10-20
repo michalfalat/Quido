@@ -1,0 +1,78 @@
+﻿@model PagedList.IPagedList <quido.Controllers.questionController.AllQuestionModel>
+@using PagedList.Mvc;
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+@{
+    ViewBag.Title = "search";
+}
+@section Scripts
+{
+    <script>
+
+
+
+        $(document).on('mouseover', ".clickableQuestion", function () {
+            this.style.background = 'rgba(0, 120, 215, 0.05)';
+            //this.style
+
+        });
+        $(document).on('mouseout', ".clickableQuestion", function () {
+            this.style.background = 'white';
+
+        });
+
+        $(document).on('click', ".clickableQuestion", function () {
+            var idQuestion = this.id;
+            var url = '@Url.Action("detail", "question", new { id = "__id__" })';
+            window.location.href = url.replace('__id__', idQuestion);
+
+        });
+
+
+        $(document).ready(function () {
+            
+
+        });
+
+
+    </script>
+ }
+
+<div class="jumbotron" style="background-color:#F2F2F2;">
+    <h3>Výsledky pro: @ViewBag.searchedText</h3>
+    <h4>Počet: @ViewBag.resultsCount</h4>
+    <div id="body">
+        @*<div id="loading"><img class="img-responsive2" src="@Url.Content("~/Content/Resources/load.gif")" alt="" height="50" width="50"></div>*@
+        <div id="allQuestions" class="container">
+            <div class="row">
+            @if (@ViewBag.resultsCount == 0)
+            {
+                <p>Nenašli se žádne výsledky</p>
+            }
+            @foreach (var aqm in Model)
+                {
+                    <div class="col-md-3 col-sm-6" style="padding: 5px">
+                        <div class="clickableQuestion" id="@aqm.questionId">
+
+                            <p style="color:#0078D7; font-size:18px;"> @aqm.questionText</p>
+                            <div style="position:absolute;bottom: 0;left: 0;padding: 15px">
+                                @aqm.questionCategory<br />
+                                @(aqm.votesCount)x
+                            </div>
+                            <div class="timeDiv"  style="position:absolute;bottom: 0;right: 0;padding: 15px">         
+                            @aqm.questionCreated
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <br />
+    <center>
+        Stránka @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) z @Model.PageCount
+
+        @Html.PagedListPager(Model, page => Url.Action("Search", new { page }))
+    </center>
+
+</div>
+

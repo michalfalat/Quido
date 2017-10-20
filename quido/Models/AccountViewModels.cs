@@ -5,7 +5,7 @@ namespace quido.Models
 {
     public class ExternalLoginConfirmationViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Vyplnte Email")]
         [Display(Name = "Email")]
         public string Email { get; set; }
     }
@@ -29,11 +29,11 @@ namespace quido.Models
         public string Provider { get; set; }
 
         [Required]
-        [Display(Name = "Code")]
+        [Display(Name = "Kód")]
         public string Code { get; set; }
         public string ReturnUrl { get; set; }
 
-        [Display(Name = "Remember this browser?")]
+        [Display(Name = "Zapamatovat?")]
         public bool RememberBrowser { get; set; }
 
         public bool RememberMe { get; set; }
@@ -41,24 +41,28 @@ namespace quido.Models
 
     public class ForgotViewModel
     {
-        [Required]
+        [Required(ErrorMessage = "Vyplnte Email")]
         [Display(Name = "Email")]
         public string Email { get; set; }
     }
 
     public class LoginViewModel
     {
-        [Required]
-        [Display(Name = "Email")]
-        [EmailAddress]
-        public string Email { get; set; }
+        //[Required]
+        //[Display(Name = "Email")]
+        //[EmailAddress]
+        //public string Email { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Vyplnte přihl. jméno")]
+        [Display(Name = "Přihl. jméno")]        
+        public string UserName { get; set; }
+
+        [Required(ErrorMessage = "Vyplnte heslo")]
         [DataType(DataType.Password)]
-        [Display(Name = "Password")]
+        [Display(Name = "Heslo")]
         public string Password { get; set; }
 
-        [Display(Name = "Remember me?")]
+        [Display(Name = "Zapamatovat?")]
         public bool RememberMe { get; set; }
     }
 
@@ -66,8 +70,8 @@ namespace quido.Models
     {
         public static Dictionary<string, string> sex { get; } = new Dictionary<string, string>()
         {
-              {"male" , Resources.Resource.Male},
-              {"female" , Resources.Resource.Female},
+              {"male" , "Muž"},
+              {"female" , "Žena"},
         };
 
     }
@@ -75,6 +79,15 @@ namespace quido.Models
     {
         public static Dictionary<int, string> years { get; } = new Dictionary<int, string>()
         {
+              {1971 , "1971"},
+              {1972 , "1972"},
+              {1973 , "1973"},
+              {1974 , "1974"},
+              {1975 , "1975"},
+              {1976 , "1976"},
+              {1977 , "1977"},
+              {1978 , "1978"},
+              {1979 , "1979"},
               {1980 , "1980"},
               {1981 , "1981"},
               {1982 , "1982"},
@@ -102,6 +115,16 @@ namespace quido.Models
               {2004 , "2004"},
               {2005 , "2005"},
               {2006 , "2006"},
+              {2007 , "2007"},
+              {2008 , "2008"},
+              {2009 , "2009"},
+              {2010 , "2010"},
+              {2011 , "2011"},
+              {2012 , "2012"},
+              {2013 , "2013"},
+              {2014 , "2014"},
+              {2015 , "2015"},
+              {2016 , "2016"},
 
 
         };
@@ -112,198 +135,10 @@ namespace quido.Models
     {
         public static Dictionary<string, string> countries { get; } = new Dictionary<string, string>()
         {
-              {"afghan" , "Afghan"},
-              {"albanian" , "Albanian"},
-              {"algerian" , "Algerian"},
-              {"american" , "American"},
-              {"andorran" , "Andorran"},
-              {"angolan" , "Angolan"},
-              {"antiguans" , "Antiguans"},
-              {"argentinean" , "Argentinean"},
-              {"armenian" , "Armenian"},
-              {"australian" , "Australian"},
-              {"austrian" , "Austrian"},
-              {"azerbaijani" , "Azerbaijani"},
-              {"bahamian" , "Bahamian"},
-              {"bahraini" , "Bahraini"},
-              {"bangladeshi" , "Bangladeshi"},
-              {"barbadian" , "Barbadian"},
-              {"barbudans" , "Barbudans"},
-              {"batswana" , "Batswana"},
-              {"belarusian" , "Belarusian"},
-              {"belgian" , "Belgian"},
-              {"belizean" , "Belizean"},
-              {"beninese" , "Beninese"},
-              {"bhutanese" , "Bhutanese"},
-              {"bolivian" , "Bolivian"},
-              {"bosnian" , "Bosnian"},
-              {"brazilian" , "Brazilian"},
-              {"british" , "British"},
-              {"bruneian" , "Bruneian"},
-              {"bulgarian" , "Bulgarian"},
-              {"burkinabe" , "Burkinabe"},
-              {"burmese" , "Burmese"},
-              {"burundian" , "Burundian"},
-              {"cambodian" , "Cambodian"},
-              {"cameroonian" , "Cameroonian"},
-              {"canadian" , "Canadian"},
-              {"cape verdean" , "Cape Verdean"},
-              {"central african" , "Central African"},
-              {"chadian" , "Chadian"},
-              {"chilean" , "Chilean"},
-              {"chinese" , "Chinese"},
-              {"colombian" , "Colombian"},
-              {"comoran" , "Comoran"},
-              {"congolese" , "Congolese"},
-              {"costa rican" , "Costa Rican"},
-              {"croatian" , "Croatian"},
-              {"cuban" , "Cuban"},
-              {"cypriot" , "Cypriot"},
-              {"czech" , "Czech"},
-              {"danish" , "Danish"},
-              {"djibouti" , "Djibouti"},
-              {"dominican" , "Dominican"},
-              {"dutch" , "Dutch"},
-              {"east timorese" , "East Timorese"},
-              {"ecuadorean" , "Ecuadorean"},
-              {"egyptian" , "Egyptian"},
-              {"emirian" , "Emirian"},
-              {"equatorial guinean" , "Equatorial Guinean"},
-              {"eritrean" , "Eritrean"},
-              {"estonian" , "Estonian"},
-              {"ethiopian" , "Ethiopian"},
-              {"fijian" , "Fijian"},
-              {"filipino" , "Filipino"},
-              {"finnish" , "Finnish"},
-              {"french" , "French"},
-              {"gabonese" , "Gabonese"},
-              {"gambian" , "Gambian"},
-              {"georgian" , "Georgian"},
-              {"german" , "German"},
-              {"ghanaian" , "Ghanaian"},
-              {"greek" , "Greek"},
-              {"grenadian" , "Grenadian"},
-              {"guatemalan" , "Guatemalan"},
-              {"guinea-bissauan" , "Guinea-Bissauan"},
-              {"guinean" , "Guinean"},
-              {"guyanese" , "Guyanese"},
-              {"haitian" , "Haitian"},
-              {"herzegovinian" , "Herzegovinian"},
-              {"honduran" , "Honduran"},
-              {"hungarian" , "Hungarian"},
-              {"icelander" , "Icelander"},
-              {"indian" , "Indian"},
-              {"indonesian" , "Indonesian"},
-              {"iranian" , "Iranian"},
-              {"iraqi" , "Iraqi"},
-              {"irish" , "Irish"},
-              {"israeli" , "Israeli"},
-              {"italian" , "Italian"},
-              {"ivorian" , "Ivorian"},
-              {"jamaican" , "Jamaican"},
-              {"japanese" , "Japanese"},
-              {"jordanian" , "Jordanian"},
-              {"kazakhstani" , "Kazakhstani"},
-              {"kenyan" , "Kenyan"},
-              {"kittian and nevisian" , "Kittian and Nevisian"},
-              {"kuwaiti" , "Kuwaiti"},
-              {"kyrgyz" , "Kyrgyz"},
-              {"laotian" , "Laotian"},
-              {"latvian" , "Latvian"},
-              {"lebanese" , "Lebanese"},
-              {"liberian" , "Liberian"},
-              {"libyan" , "Libyan"},
-              {"liechtensteiner" , "Liechtensteiner"},
-              {"lithuanian" , "Lithuanian"},
-              {"luxembourger" , "Luxembourger"},
-              {"macedonian" , "Macedonian"},
-              {"malagasy" , "Malagasy"},
-              {"malawian" , "Malawian"},
-              {"malaysian" , "Malaysian"},
-              {"maldivan" , "Maldivan"},
-              {"malian" , "Malian"},
-              {"maltese" , "Maltese"},
-              {"marshallese" , "Marshallese"},
-              {"mauritanian" , "Mauritanian"},
-              {"mauritian" , "Mauritian"},
-              {"mexican" , "Mexican"},
-              {"micronesian" , "Micronesian"},
-              {"moldovan" , "Moldovan"},
-              {"monacan" , "Monacan"},
-              {"mongolian" , "Mongolian"},
-              {"moroccan" , "Moroccan"},
-              {"mosotho" , "Mosotho"},
-              {"motswana" , "Motswana"},
-              {"mozambican" , "Mozambican"},
-              {"namibian" , "Namibian"},
-              {"nauruan" , "Nauruan"},
-              {"nepalese" , "Nepalese"},
-              {"new zealander" , "New Zealander"},
-              {"ni-vanuatu" , "Ni-Vanuatu"},
-              {"nicaraguan" , "Nicaraguan"},
-              {"nigerien" , "Nigerien"},
-              {"north korean" , "North Korean"},
-              {"northern irish" , "Northern Irish"},
-              {"norwegian" , "Norwegian"},
-              {"omani" , "Omani"},
-              {"pakistani" , "Pakistani"},
-              {"palauan" , "Palauan"},
-              {"panamanian" , "Panamanian"},
-              {"papua new guinean" , "Papua New Guinean"},
-              {"paraguayan" , "Paraguayan"},
-              {"peruvian" , "Peruvian"},
-              {"polish" , "Polish"},
-              {"portuguese" , "Portuguese"},
-              {"qatari" , "Qatari"},
-              {"romanian" , "Romanian"},
-              {"russian" , "Russian"},
-              {"rwandan" , "Rwandan"},
-              {"saint lucian" , "Saint Lucian"},
-              {"salvadoran" , "Salvadoran"},
-              {"samoan" , "Samoan"},
-              {"san marinese" , "San Marinese"},
-              {"sao tomean" , "Sao Tomean"},
-              {"saudi" , "Saudi"},
-              {"scottish" , "Scottish"},
-              {"senegalese" , "Senegalese"},
-              {"serbian" , "Serbian"},
-              {"seychellois" , "Seychellois"},
-              {"sierra leonean" , "Sierra Leonean"},
-              {"singaporean" , "Singaporean"},
-              {"slovakian" , "Slovakian"},
-              {"slovenian" , "Slovenian"},
-              {"solomon islander" , "Solomon Islander"},
-              {"somali" , "Somali"},
-              {"south african" , "South African"},
-              {"south korean" , "South Korean"},
-              {"spanish" , "Spanish"},
-              {"sri lankan" , "Sri Lankan"},
-              {"sudanese" , "Sudanese"},
-              {"surinamer" , "Surinamer"},
-              {"swazi" , "Swazi"},
-              {"swedish" , "Swedish"},
-              {"swiss" , "Swiss"},
-              {"syrian" , "Syrian"},
-              {"taiwanese" , "Taiwanese"},
-              {"tajik" , "Tajik"},
-              {"tanzanian" , "Tanzanian"},
-              {"thai" , "Thai"},
-              {"togolese" , "Togolese"},
-              {"tongan" , "Tongan"},
-              {"trinidadian or tobagonian" , "Trinidadian or Tobagonian"},
-              {"tunisian" , "Tunisian"},
-              {"turkish" , "Turkish"},
-              {"tuvaluan" , "Tuvaluan"},
-              {"ugandan" , "Ugandan"},
-              {"ukrainian" , "Ukrainian"},
-              {"uruguayan" , "Uruguayan"},
-              {"uzbekistani" , "Uzbekistani"},
-              {"venezuelan" , "Venezuelan"},
-              {"vietnamese" , "Vietnamese"},
-              {"welsh" , "Welsh"},
-              {"yemenite" , "Yemenite"},
-              {"zambian" , "Zambian"},
-              {"zimbabwean" , "Zimbabwean"},
+              
+              {"SK" , "Slovensko"},
+              {"CZ" , "Česko"},
+              {"undefined" , "Jiné.."},
         };
 
     }
@@ -315,55 +150,55 @@ namespace quido.Models
         public Dictionary<int, string> myYears = Years.years;
         public Dictionary<string, string> mySex = SexList.sex;
 
-        [Required]
-        [Display(ResourceType = typeof(Resources.Resource), Name = "Username")]
+        [Required(ErrorMessage = "Vyplnte jméno")]
+        [Display(Name = "Přihl. jméno")]
         public string Username { get; set; }
 
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage ="Vyplnte e-mail")]
+        [EmailAddress(ErrorMessage = "Vyplnte e-mail správně")]
         [Display(Name = "Email")]
         public string Email { get; set; }
 
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
+        [Required(ErrorMessage = "Vyplnte heslo")]
+        [StringLength(100, ErrorMessage = "{0} Musí mít nejméne {2} znaku.", MinimumLength = 6)]
         [DataType(DataType.Password)]
-        [Display(ResourceType = typeof(Resources.Resource), Name = "Password")]
+        [Display( Name = "Heslo")]
         public string Password { get; set; }
 
         [DataType(DataType.Password)]
-        [Display(ResourceType = typeof(Resources.Resource), Name = "ConfirmPassword")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        [Display( Name = "Heslo znovu")]
+        [Compare("Password", ErrorMessage = "Hesla se neshodují.")]
         public string ConfirmPassword { get; set; }
 
         [Required]
-        [Display(ResourceType = typeof(Resources.Resource), Name = "Nationality")]
+        [Display( Name = "Stát")]
         public string Nationality { get; set; }
 
         [Required]
-        [Display(ResourceType = typeof(Resources.Resource), Name = "Sex")]
+        [Display(Name = "Pohlaví")]
         public string Sex { get; set; }
 
         [Required]
-        [Display(ResourceType = typeof(Resources.Resource), Name = "YearOfBirth")]
+        [Display( Name = "Rok narození")]
         public string YearOfBirth { get; set; }
     }
 
     public class ResetPasswordViewModel
     {
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "Vyplnte e-mail")]
+        [EmailAddress(ErrorMessage = "Email neni správnej")]
         [Display(Name = "Email")]
         public string Email { get; set; }
 
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} characters long.", MinimumLength = 6)]
+        [Required(ErrorMessage = "Vyplnte heslo")]
+        [StringLength(100, ErrorMessage = "{0} Musí mít nejméne {2} znaku.", MinimumLength = 6)]
         [DataType(DataType.Password)]
-        [Display(Name = "Password")]
+        [Display(Name = "Heslo")]
         public string Password { get; set; }
 
         [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        [Display(Name = "Potvrď heslo")]
+        [Compare("Password", ErrorMessage = "Hesla se neshodují.")]
         public string ConfirmPassword { get; set; }
 
         public string Code { get; set; }

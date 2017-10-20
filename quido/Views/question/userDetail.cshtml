@@ -1,0 +1,534 @@
+﻿@model quido.Controllers.questionController.DetailUserQuestionModel
+@{
+    ViewBag.Title = ViewBag.pageTitle;
+}
+@section Scripts
+{
+    <script>
+        var modelData = @Html.Raw(Json.Encode(Model));
+        var universalGraphDataLabel=[];
+        var universalGraphData = [];
+        var universalGraphColor= [];
+
+        var universalGraphDataLabelRespondents=[];
+        var universalGraphDataRespondents = [];
+        var universalGraphColorRespondents = [];
+
+
+        //var genderGraphDataLabel=[];
+        //var genderGraphData = [];
+        //var genderGraphColor= [];
+
+        //var ageGraphDataLabel=[];
+        //var ageGraphData = [];
+        //var ageGraphColor= [];
+
+        //var countryGraphDataLabel=[];
+        //var countryGraphData = [];
+        //var countryGraphColor= [];
+
+        var myBarChart= null;
+        var myDonutChart = null;
+
+        var myBarChartRespondents= null;
+        var myDonutChartRespondents = null;
+        blueColors = ['#005eab','#0078d7','#1295ff','#89caff','#c4e4ff','#004781'];
+        greenColors = ['#00cc6a','#0aff89','#47ffa6','#85ffc4','#c2ffe1','#00a354 '];
+        showQuestionDetail();
+        $(document).ready(function () {
+            setTimeout(drawDonutChart,500);
+            setTimeout(drawDonutChartRespondents,500);
+            $(document).on("click", "#btnSendVote", function () {
+                var selectedVal = $("#questionAnswersForVote").val();
+                if(selectedVal!='0')
+                {
+                    var img = document.getElementById('loading');
+                    img.style.visibility = 'visible';
+                    sendVote(selectedVal);
+
+                }
+
+
+            });
+
+
+
+
+
+            $(document).on("click", "#answersTab", function () {
+                $("#respondentsTab").removeClass("active");
+                $("#answersTab").addClass("active");
+                $(".activeOnRespondentsTab").css('display','none');
+                $(".activeOnAnswersTab").css('display','block');
+                $('#selectGraphInAnswerTab').trigger('change');
+
+
+            });
+            $(document).on("click", "#respondentsTab", function () {
+                $("#answersTab").removeClass("active");
+                $("#respondentsTab").addClass("active");
+                $(".activeOnAnswersTab").css('display','none');
+                $(".activeOnRespondentsTab").css('display','block');
+                $('#selectGraphInRespondentsTab').trigger('change');
+
+
+
+            });
+
+            $('#selectGraphInAnswerTab').on('change', function (e) {
+
+                var valueSelected = this.value;
+                if(valueSelected==='0')
+                    drawDonutChart();
+                if(valueSelected==='1')
+                    drawBarChart();
+
+            });
+
+            $('#selectGraphInRespondentsTab').on('change', function (e) {
+
+                var valueSelected = this.value;
+                if(valueSelected==='0')
+                    drawDonutChartRespondents();
+                if(valueSelected==='1')
+                    drawBarChartRespondents();
+
+            });
+
+            $('#selectAtributInRespondentsTab').on('change', function (e) {
+                universalGraphDataLabelRespondents = [];
+                universalGraphDataRespondents=[];
+                universalGraphColorRespondents=[];
+
+                var valueSelected = this.value;
+                //by gender
+                if(valueSelected==='0')
+                {
+                    $.each(modelData.genderCounts, function (key, value) {
+                        universalGraphDataLabelRespondents.push(value.gender);
+                        universalGraphDataRespondents.push(value.genderCount);
+                        universalGraphColorRespondents.push(greenColors[key%6]);
+                    });
+                }
+                    //by country
+                else if(valueSelected==='1')
+                {
+                    $.each(modelData.countryCounts, function (key, value) {
+                        universalGraphDataLabelRespondents.push(value.country);
+                        universalGraphDataRespondents.push(value.countryCount);
+                        universalGraphColorRespondents.push(greenColors[key%6]);
+                    });
+                }
+                    // by age
+                else if(valueSelected==='2')
+                {
+                    $.each(modelData.ageCounts, function (key, value) {
+                        universalGraphDataLabelRespondents.push(value.age);
+                        universalGraphDataRespondents.push(value.ageCount);
+                        universalGraphColorRespondents.push(greenColors[key%6]);
+                    });
+                }
+
+                $('#selectGraphInRespondentsTab').trigger('change');
+
+            });
+
+
+        });
+
+        function showQuestionDetail() {
+
+            $('#detail').empty();
+            $("#headingQuestion").text(modelData.questionText);
+            var date = new Date(parseInt(modelData.questionCreated.substr(6)));
+            var html = '<h3>Informace</h3>\n';
+
+            html += 'Vytvořeno: ' + $.format.date(date, "dd.MM.yyyy HH:mm") + '<br/>\n';
+            html += 'Kategorie: ' + modelData.questionCategory + '<br/>\n';
+            if(modelData.questionType=='addChoiceNumber')
+                html += 'Typ: Číselná odpověd<br/>\n';
+            else if(modelData.questionType=='yesOrNo')
+                html += 'Typ: Ano/Ne<br/>\n';
+            else if(modelData.questionType=='selectFromChoices')
+                html += 'Typ: Výběr z možností<br/>\n';
+
+            html += 'Počet odpovědí: <span id="countInDetail">' + modelData.allVotesCount + '</span><br/>\n';
+            if (modelData.questionDescription !== null) {
+                html += '<h3>Popis</h3>\n';
+                html += modelData.questionDescription + '<br/>\n';
+            }
+            $.each(modelData.questionVotes, function (key, value) {
+                universalGraphDataLabel.push(value.questionAnswer.AnswerText);
+                universalGraphData.push(value.questionAnswerCount);
+                universalGraphColor.push(blueColors[key%6]);
+            });
+
+            $.each(modelData.genderCounts, function (key, value) {
+                universalGraphDataLabelRespondents.push(value.gender);
+                universalGraphDataRespondents.push(value.genderCount);
+                universalGraphColorRespondents.push(greenColors[key%6]);
+            });
+
+
+            html += '<button id="btnDeleteQuestion" type="button" class="btn btn-default">Vymazat otázku</button>';
+            html +='<img id="loading" class="img-responsive2" src="@Url.Content("~/Content/Resources/load.gif")" alt="" height="50" width="50" style="visibility:hidden;">';
+            html += '</div>';
+            //}
+            $('#detail').append(html);
+            $('#detail').attr('idQuestion',modelData.questionId);
+
+
+
+
+
+        };
+
+        function deleteQuestion(id) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("removeQuestion", "question")',
+                data: { 'idQuestion': id },
+
+                success: function (data) {
+                    var url = '@Url.Action("index", "manage")';
+                    window.location.href = url;
+
+
+                },
+                error: function (request, status, error) {
+                    alert("chyba: " + request.responseText);
+                    document.getElementById('loading').style.visibility = 'hidden';
+                }
+            });
+        }
+
+        $(document).on("click", "#btnDeleteQuestion", function () {
+
+            $("#confirmDelete").modal('toggle');
+
+
+        });
+
+
+
+
+        $(document).on("click", "#btnDeleteQuestionFinal", function () {
+            deleteQuestion(modelData.questionId);
+        });
+
+        function isNumberKey(evt){
+            var charCode = (evt.which) ? evt.which : evt.keyCode;
+            if (charCode > 31 && (charCode < 48 || charCode > 57))
+                return false;
+            return true;
+        }
+
+        function drawDonutChart()
+        {
+
+            $("#myChartDonut").css('display','block');
+            $("#myChartBar").css('display','none');
+            if(myDonutChart!=null)
+                myDonutChart.destroy();
+            fitToContainer(document.getElementById("myChartDonut"));
+            var ctx = document.getElementById("myChartDonut").getContext("2d");
+            myDonutChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+
+                    labels: universalGraphDataLabel,
+                    datasets: [{
+                        label: '# of Votes',
+                        data: universalGraphData,
+                        backgroundColor: universalGraphColor
+                    }],
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            fontSize:20,
+                            fontColor:'#000000',
+                            usePointStyle:true
+                        }
+                    },
+                    tooltips:{
+                        bodyFontSize:20,
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var allData = data.datasets[tooltipItem.datasetIndex].data;
+                                var tooltipLabel = data.labels[tooltipItem.index];
+                                var tooltipData = allData[tooltipItem.index];
+                                var total = 0;
+                                for (var i in allData) {
+                                    total += allData[i];
+                                }
+                                var tooltipPercentage = Math.round((tooltipData / total) * 100);
+                                return tooltipLabel + ': ' + tooltipData + ' (' + tooltipPercentage + '%)';
+                            }
+                        }
+                    }
+                }
+            });
+
+        }
+
+        function drawBarChart()
+        {
+            $("#myChartDonut").css('display','none');
+            $("#myChartBar").css('display','block');
+            if(myBarChart!=null)
+            {
+                myBarChart.destroy();
+            }
+            fitToContainer(document.getElementById("myChartBar"));
+            var ctx = document.getElementById("myChartBar").getContext("2d");
+
+            myBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+
+                    labels: universalGraphDataLabel,
+                    datasets: [{
+                        data: universalGraphData,
+                        backgroundColor: universalGraphColor
+
+                    }],
+                },
+                options: {
+                    legend: {
+                        display: false,
+                        position: 'right',
+                        labels: {
+                            fontSize:20,
+                            fontColor:'#000000',
+                            usePointStyle:true
+                        }
+
+                    },
+                    tooltips:{
+                        bodyFontSize:20,
+                        callbacks: {
+                            title: function (tooltipItem, data) { return ''; },
+                            label: function(tooltipItem, data) {
+                                var allData = data.datasets[tooltipItem.datasetIndex].data;
+                                var tooltipLabel = data.labels[tooltipItem.index];
+                                var tooltipData = allData[tooltipItem.index];
+                                var total = 0;
+                                for (var i in allData) {
+                                    total += allData[i];
+                                }
+                                var tooltipPercentage = Math.round((tooltipData / total) * 100);
+                                return tooltipLabel + ': ' + tooltipData + ' (' + tooltipPercentage + '%)';
+                            }
+                        }
+                    },
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero:true
+                            }
+                        }]
+                    }
+                }
+
+
+            });
+
+        }
+
+
+        function drawBarChartRespondents()
+        {
+            $("#myChartDonutRespondents").css('display','none');
+            $("#myChartBarRespondents").css('display','block');
+            if(myBarChartRespondents!=null)
+            {
+                myBarChartRespondents.destroy();
+            }
+            fitToContainer(document.getElementById("myChartBarRespondents"));
+            var ctx = document.getElementById("myChartBarRespondents").getContext("2d");
+
+            myBarChartRespondents = new Chart(ctx, {
+                type: 'bar',
+                data: {
+
+                    labels: universalGraphDataLabelRespondents,
+                    datasets: [{
+                        data: universalGraphDataRespondents,
+                        backgroundColor: universalGraphColorRespondents
+
+                    }],
+                },
+                options: {
+                    legend: {
+                        display: false,
+                        position: 'right',
+                        labels: {
+                            fontSize:20,
+                            fontColor:'#000000',
+                            usePointStyle:true
+                        }
+
+                    },
+                    tooltips:{
+                        bodyFontSize:20,
+                        callbacks: {
+                            title: function (tooltipItem, data) { return ''; },
+                            label: function(tooltipItem, data) {
+                                var allData = data.datasets[tooltipItem.datasetIndex].data;
+                                var tooltipLabel = data.labels[tooltipItem.index];
+                                var tooltipData = allData[tooltipItem.index];
+                                var total = 0;
+                                for (var i in allData) {
+                                    total += allData[i];
+                                }
+                                var tooltipPercentage = Math.round((tooltipData / total) * 100);
+                                return tooltipLabel + ': ' + tooltipData + ' (' + tooltipPercentage + '%)';
+                            }
+                        }
+                    },
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero:true
+                            }
+                        }]
+                    }
+                }
+
+
+            });
+
+        }
+
+
+        function drawDonutChartRespondents()
+        {
+            $("#myChartDonutRespondents").css('display','block');
+            $("#myChartBarRespondents").css('display','none');
+            if(myDonutChartRespondents!=null)
+            {
+                myDonutChartRespondents.destroy();
+            }
+            fitToContainer(document.getElementById("myChartDonutRespondents"));
+            var ctx = document.getElementById("myChartDonutRespondents").getContext("2d");
+
+            myDonutChartRespondents = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+
+                    labels: universalGraphDataLabelRespondents,
+                    datasets: [{
+                        data: universalGraphDataRespondents,
+                        backgroundColor: universalGraphColorRespondents
+
+                    }],
+                },
+                options: {
+                    legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            fontSize:20,
+                            fontColor:'#000000',
+                            usePointStyle:true
+                        }
+                    },
+                    tooltips:{
+                        bodyFontSize:20,
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var allData = data.datasets[tooltipItem.datasetIndex].data;
+                                var tooltipLabel = data.labels[tooltipItem.index];
+                                var tooltipData = allData[tooltipItem.index];
+                                var total = 0;
+                                for (var i in allData) {
+                                    total += allData[i];
+                                }
+                                var tooltipPercentage = Math.round((tooltipData / total) * 100);
+                                return tooltipLabel + ': ' + tooltipData + ' (' + tooltipPercentage + '%)';
+                            }
+                        }
+                    }
+                }
+
+
+            });
+
+        }
+        
+
+       
+
+
+        function fitToContainer(canvas){
+            canvas.style.width='100%';
+            canvas.style.height='100%';
+            canvas.width  = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+        }
+    </script>
+}
+
+<div class="jumbotron" style="border-radius: 3px;border: 1px solid #DDDDDD;background-color:white;padding-left:10px;padding-right:10px;padding-top:10px;padding-bottom:10px; margin-top:15px;">
+    <div id="body" class="container">
+        <div id="detail" class="col-md-4" style="background-color:white; min-height:500px; border-right:1px solid lightgrey; margin-bottom:20px;"></div>
+        <div id="graphs" class="col-md-8" style="background-color:white;min-height:500px;">
+            <div style="background-color:white;"><h2 id="headingQuestion"></h2></div>
+            <ul class="nav nav-tabs">
+                <li id="answersTab" class="active"><a href="#">Odpověde</a></li>
+                <li id="respondentsTab"><a href="#">Respondenti</a></li>
+            </ul>
+            <div id="graphBody" style="padding-top:10px;">
+                <div class="activeOnAnswersTab">
+                    <select id="selectGraphInAnswerTab" class="form-control">
+                        <option value="0">Koláčový graf</option>
+                        <option value="1">Sloupcový graf</option>
+                    </select>
+                    <div style="height:350px;width:100%;padding-top:30px;">
+                        <canvas id="myChartDonut" style="width:100%;"></canvas>
+                        <canvas id="myChartBar" style="width:100%;display:none;"></canvas>
+                    </div>
+                </div>
+                <div class="activeOnRespondentsTab" style="display:none;">
+                    <form class="form-inline" style="min-width:400px;">
+                        <select id="selectGraphInRespondentsTab" class="form-control" style="min-width:200px;">
+                            <option value="0">Koláčový graf</option>
+                            <option value="1">Sloupcový graf</option>
+                        </select>
+                        <select id="selectAtributInRespondentsTab" class="form-control" style="min-width:200px;">
+                            <option value="0">Pohlaví</option>
+                            <option value="1">Národnost</option>
+                            <option value="2">Věk</option>
+                        </select>
+                    </form>
+                    <div style="height:350px;width:100%;padding-top:30px;">
+                        <canvas id="myChartDonutRespondents" style="width:100%;"></canvas>
+                        <canvas id="myChartBarRespondents" style="width:100%;display:none;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="confirmDelete" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header" style="padding:15px 30px;background-color: #0078D7;color: white !important;text-align: center;border-radius:5px 5px 0px 0px;"">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4><span class="glyphicon glyphicon-question-sign"></span>  Opravdu chcete vymazat otázku?</h4>
+            </div>
+            <div class="modal-footer">
+                <button type="button" data-dismiss="modal" class="btn">Zrušit</button>
+                <button id="btnDeleteQuestionFinal" type="button" data-dismiss="modal" class="btn btn-primary">Vymazat</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
